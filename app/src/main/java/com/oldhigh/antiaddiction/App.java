@@ -11,5 +11,7 @@ public class App  extends Application {
     public void onCreate() {
         super.onCreate();
         ToastUtils.init(this);
+        DataManager.get().init(this);
+
     }
 }

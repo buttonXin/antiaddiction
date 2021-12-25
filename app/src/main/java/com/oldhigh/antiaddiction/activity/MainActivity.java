@@ -1,4 +1,4 @@
-package com.oldhigh.antiaddiction;
+package com.oldhigh.antiaddiction.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+
+import com.oldhigh.antiaddiction.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,12 +26,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initData() {
-        addButton("选择应用", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(getApplicationContext(),ChooseActivity.class));
-            }
-        });
+        addButton("选择应用", view -> startActivity(new Intent(getApplicationContext(),ChooseActivity.class)));
+
+        addButton("查看应用", view -> startActivity(new Intent(getApplicationContext(),SelectedActivity.class)));
     }
 
 

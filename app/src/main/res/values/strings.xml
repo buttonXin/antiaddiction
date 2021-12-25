@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">AntiAddiction</string>
     <string name="accessibility_service_description">防沉迷服务</string>
+    <string name="save">保存</string>
+    <string name="clear">全部清除</string>
 </resources>

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ChooseActivity"
+    tools:context=".activity.ChooseActivity"
     android:id="@+id/cl_root"
     >
 
@@ -21,5 +21,18 @@
         android:id="@+id/pb"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/btn_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_margin="10dp"
+        android:padding="10dp"
+        android:text="@string/save"
+        app:layout_constraintBottom_toBottomOf="@id/cl_root"
+        app:layout_constraintRight_toRightOf="@id/cl_root"
+
         tools:ignore="MissingConstraints" />
 </androidx.constraintlayout.widget.ConstraintLayout>

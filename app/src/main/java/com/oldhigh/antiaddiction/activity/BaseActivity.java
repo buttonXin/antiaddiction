@@ -1,4 +1,4 @@
-package com.oldhigh.antiaddiction;
+package com.oldhigh.antiaddiction.activity;
 
 import android.os.Bundle;
 

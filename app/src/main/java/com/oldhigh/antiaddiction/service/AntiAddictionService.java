@@ -1,4 +1,4 @@
-package com.oldhigh.antiaddiction;
+package com.oldhigh.antiaddiction.service;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.pm.PackageManager;

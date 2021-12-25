@@ -1,8 +1,6 @@
 package com.oldhigh.antiaddiction.adapter;
 
 
-import android.content.res.Resources;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +10,7 @@ import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.oldhigh.antiaddiction.DataManager;
 import com.oldhigh.antiaddiction.R;
 import com.oldhigh.antiaddiction.bean.AppInfo;
 
@@ -21,6 +20,8 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
 
     public static final String TAG = CustomAdapter.class.getName();
     private List<AppInfo> localApps;
+
+    private boolean hasClick = true;
 
     /**
      * Provide a reference to the type of views that you are using
@@ -53,8 +54,14 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
      * @param dataSet String[] containing the data to populate views to be used
      *                by RecyclerView.
      */
-    public CustomAdapter(List<AppInfo> dataSet) {
+    public CustomAdapter(List<AppInfo> dataSet, boolean hasClick) {
         localApps = dataSet;
+        this.hasClick = hasClick;
+    }
+
+    public void updateAll(List<AppInfo> dataSet){
+        localApps = dataSet;
+        notifyDataSetChanged();
     }
 
     // Create new views (invoked by the layout manager)
@@ -75,23 +82,38 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
         // contents of the view with that element
         viewHolder.getTextView().setText(localApps.get(position).appName);
         viewHolder.getImageView().setImageDrawable(localApps.get(position).icon);
-        if (localApps.get(position).selected) {
-            viewHolder.getTextView().setTextColor(ContextCompat.getColor(
-                    viewHolder.getTextView().getContext(), R.color.red));
+
+        if (hasClick) {
+            if (localApps.get(position).selected) {
+                viewHolder.getTextView().setTextColor(ContextCompat.getColor(
+                        viewHolder.getTextView().getContext(), R.color.red));
+            } else {
+                viewHolder.getTextView().setTextColor(ContextCompat.getColor(
+                        viewHolder.getTextView().getContext(), R.color.black));
+            }
+            viewHolder.itemView.setOnClickListener(view -> {
+                if (localApps.get(position).selected) {
+                    localApps.get(position).selected = false;
+                    DataManager.get().removeAppInfo(localApps.get(position));
+                } else {
+                    localApps.get(position).selected = true;
+                    DataManager.get().addAppInfo(localApps.get(position));
+                }
+                notifyItemChanged(position);
+            });
         } else {
-            viewHolder.getTextView().setTextColor(ContextCompat.getColor(
-                    viewHolder.getTextView().getContext(), R.color.black));
+            viewHolder.itemView.setOnClickListener(view -> {
+                if (localApps.get(position).selected) {
+                    localApps.get(position).selected = false;
+                    DataManager.get().removeAppInfo(localApps.get(position));
+                    localApps = DataManager.get().getSaveApps();
+                    notifyDataSetChanged();
+                }
+
+            });
         }
 
-        viewHolder.itemView.setOnClickListener(view -> {
-            if (localApps.get(position).selected) {
-                localApps.get(position).selected = false;
-            } else {
-                localApps.get(position).selected = true;
 
-            }
-            notifyItemChanged(position);
-        });
     }
 
 
