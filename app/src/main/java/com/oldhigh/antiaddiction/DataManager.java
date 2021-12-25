@@ -18,6 +18,7 @@ public class DataManager {
     private Set<AppInfo> appInfoSets = new HashSet<>();
     private Context context;
     private SharedPreferences sharedPreferences;
+    private PackageEventListener listener;
 
 
     private DataManager() {
@@ -71,13 +72,29 @@ public class DataManager {
         return new ArrayList<>(appInfoSets);
     }
 
+    public Set<String> getAppNames() {
+        return sharedPreferences.getStringSet("all", new HashSet<>());
+    }
+
     public void saveAll() {
         Set<String> stringSet = new HashSet<>();
         for (AppInfo info : appInfoSets) {
             stringSet.add(info.packageName);
         }
         sharedPreferences.edit().putStringSet("all", stringSet).apply();
+
+        if (listener != null) {
+            listener.onPackageChanged(stringSet);
+        }
     }
 
+    public void setPackageEventListener(PackageEventListener listener) {
+        this.listener = listener;
+    }
+
+
+    public interface PackageEventListener {
+        void onPackageChanged(Set<String> stringSet);
+    }
 
 }
