@@ -16,6 +16,9 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
 
     public static final String TAG = AntiAddictionService.class.getName();
 
+
+    private final long timeout = 30 * 60 * 1000;
+
     private String currentPkgName = "";
     private String curAppName = "";
     private int countToast = 0;
@@ -32,7 +35,7 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
                 currentPkgName = "";
             }
             countToast++;
-            toast(curAppName + " 超时了,歇歇先");
+            toast(curAppName + " 过度使用哦,快休息休息");
         }
     };
 
@@ -111,7 +114,7 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
                     };
                     timerToast.schedule(taskToast, 0, 3000);
                 }
-            }, 10 * 1000);
+            }, timeout);
 
         }
 

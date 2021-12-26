@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.hjq.toast.ToastUtils;
 import com.oldhigh.antiaddiction.DataManager;
 import com.oldhigh.antiaddiction.R;
 import com.oldhigh.antiaddiction.bean.AppInfo;
@@ -59,7 +60,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
         this.hasClick = hasClick;
     }
 
-    public void updateAll(List<AppInfo> dataSet){
+    public void updateAll(List<AppInfo> dataSet) {
         localApps = dataSet;
         notifyDataSetChanged();
     }
@@ -95,9 +96,11 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder
                 if (localApps.get(position).selected) {
                     localApps.get(position).selected = false;
                     DataManager.get().removeAppInfo(localApps.get(position));
+                    ToastUtils.show("关闭了 " + localApps.get(position).appName);
                 } else {
                     localApps.get(position).selected = true;
                     DataManager.get().addAppInfo(localApps.get(position));
+                    ToastUtils.show("选择了 " + localApps.get(position).appName);
                 }
                 notifyItemChanged(position);
             });
