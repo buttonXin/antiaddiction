@@ -2,6 +2,7 @@ package com.oldhigh.antiaddiction.service;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.pm.PackageManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 
@@ -54,7 +55,12 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        String packageName = event.getPackageName().toString();
+
+        CharSequence eventPackageName = event.getPackageName();
+        if(TextUtils.isEmpty(eventPackageName)){
+            return;
+        }
+        String packageName = eventPackageName.toString();
 
         if (getPackageName().equals(packageName)) {
             return;
@@ -62,14 +68,11 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
 
 
         if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-
-            Log.e(TAG, "onAccessibilityEvent: " + packageName + "  " + (stringSet == null ? 0 : stringSet.size()));
+            
             if (stringSet == null || stringSet.size() == 0) {
                 return;
             }
-
-
-            Log.e(TAG, "onAccessibilityEvent: " + packageName);
+            
             if (currentPkgName.equals(packageName)) {
                 return;
             }
@@ -82,6 +85,8 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
                 return;
             }
 
+            Log.e(TAG, "onAccessibilityEvent: " + packageName);
+            
             timerPackage.cancel();
             timerToast.cancel();
 
