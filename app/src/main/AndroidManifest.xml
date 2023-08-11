@@ -12,7 +12,11 @@
         android:theme="@style/Theme.AntiAddiction">
         <activity android:name=".activity.ChooseActivity"></activity>
         <activity android:name=".activity.SelectedActivity"></activity>
-        <activity android:name=".activity.MainActivity">
+        <activity android:name=".activity.EditAdActivity"></activity>
+        <activity
+            android:name=".activity.MainActivity"
+            android:enabled="true"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -22,6 +26,8 @@
 
         <service
             android:name=".service.AntiAddictionService"
+            android:enabled="true"
+            android:exported="true"
             android:label="@string/app_name"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>

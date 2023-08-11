@@ -48,7 +48,7 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
     private final List<String> skipList = Arrays.asList(
             "跳过5", "跳过4", "跳过3", "跳过2", "跳过1", "跳过",
             "跳过5s", "跳过4s", "跳过3s", "跳过2s", "跳过1s", "跳过",
-            "5跳过", "4跳过", "3跳过", "2跳过", "1跳过", "跳过",
+            "5跳过", "4跳过", "3跳过", "2跳过", "1跳过", "跳过","确定",
             "跳过广告5", "跳过广告4", "跳过广告3", "跳过广告2", "跳过广告",
             "我知道了",
             "以后再说"
@@ -83,9 +83,9 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
         if (rootInActiveWindow == null) {
             return;
         }
-        if (stringSet != null && stringSet.contains(packageName)) {
-            return;
-        }
+//        if (stringSet != null && stringSet.contains(packageName)) {
+//            return;
+//        }
 
         _performActionPath(packageName);
 
@@ -97,9 +97,9 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
 
         if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
 
-            if (stringSet == null || stringSet.size() == 0) {
-                return;
-            }
+//            if (stringSet == null || stringSet.size() == 0) {
+//                return;
+//            }
 
             if (currentPkgName.equals(packageName)) {
                 return;
@@ -170,7 +170,7 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
     private void _performAction(String packageName, List<AccessibilityNodeInfo> nodeInfos) {
         for (int i = 0; i < nodeInfos.size(); i++) {
             nodeInfos.get(i).performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            Log.e(TAG, "_performAction:packageName= " + packageName);
+//            Log.e(TAG, "_performAction:packageName= " + packageName);
         }
     }
 

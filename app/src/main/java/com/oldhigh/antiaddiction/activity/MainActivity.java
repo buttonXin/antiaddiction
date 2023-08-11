@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout llContent;
     private View viewChoose;
     private View viewSelected;
+    private View viewAd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,9 +54,17 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        viewChoose = addButton("选择应用", view -> startActivity(new Intent(getApplicationContext(), ChooseActivity.class)));
+        viewChoose = addButton("选择应用", view -> startActivity(
+                new Intent(getApplicationContext(), ChooseActivity.class)));
 
-        viewSelected = addButton("查看应用", view -> startActivity(new Intent(getApplicationContext(), SelectedActivity.class)));
+        viewSelected = addButton("查看应用", view -> startActivity(
+                new Intent(getApplicationContext(), SelectedActivity.class)));
+
+
+        viewAd = addButton("添加广告", view -> startActivity(
+                new Intent(getApplicationContext(), EditAdActivity.class)));
+
+
         showButton();
 
     }
@@ -75,9 +84,11 @@ public class MainActivity extends AppCompatActivity {
         if (isServiceStart) {
             viewChoose.setVisibility(View.VISIBLE);
             viewSelected.setVisibility(View.VISIBLE);
+            viewAd.setVisibility(View.VISIBLE);
         } else {
             viewChoose.setVisibility(View.GONE);
             viewSelected.setVisibility(View.GONE);
+            viewAd.setVisibility(View.GONE);
         }
     }
 
