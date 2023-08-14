@@ -110,19 +110,19 @@ public class DataManager {
         sharedPreferences.edit().putStringSet("ads", adNameSets).apply();
     }
 
-    public Set<String> getAllAdName() {
+    public List<String> getAllAdName() {
         List<String> strings = Arrays.asList(
                 "跳过5", "跳过4", "跳过3", "跳过2", "跳过1", "跳过",
                 "跳过5s", "跳过4s", "跳过3s", "跳过2s", "跳过1s", "跳过",
-                "5跳过", "4跳过", "3跳过", "2跳过", "1跳过", "跳过",
+                "5跳过", "4跳过", "3跳过", "2跳过", "1跳过", "跳过","确定",
                 "跳过广告5", "跳过广告4", "跳过广告3", "跳过广告2", "跳过广告",
-                "我知道了",
+                "我知道了","同意",
                 "以后再说"
         );
         Set<String> result = new HashSet<>(strings);
         Set<String> adsSets = sharedPreferences.getStringSet("ads", adNameSets);
         result.addAll(adsSets);
-        return result;
+        return new ArrayList<String>(result);
     }
 
 

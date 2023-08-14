@@ -45,14 +45,7 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
     private PackageManager packageManager;
     private Set<String> stringSet;
 
-    private final List<String> skipList = Arrays.asList(
-            "跳过5", "跳过4", "跳过3", "跳过2", "跳过1", "跳过",
-            "跳过5s", "跳过4s", "跳过3s", "跳过2s", "跳过1s", "跳过",
-            "5跳过", "4跳过", "3跳过", "2跳过", "1跳过", "跳过","确定",
-            "跳过广告5", "跳过广告4", "跳过广告3", "跳过广告2", "跳过广告",
-            "我知道了",
-            "以后再说"
-    );
+    private List<String> skipList ;
 
     @Override
     protected void onServiceConnected() {
@@ -89,6 +82,7 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
 
         _performActionPath(packageName);
 
+        skipList = DataManager.get().getAllAdName();
         for (int i = 0; i < skipList.size(); i++) {
             _performAction(packageName,
                     rootInActiveWindow.findAccessibilityNodeInfosByText(

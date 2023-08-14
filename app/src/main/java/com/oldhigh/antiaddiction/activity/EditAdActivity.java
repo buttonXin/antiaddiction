@@ -9,6 +9,7 @@ import com.hjq.toast.ToastUtils;
 import com.oldhigh.antiaddiction.DataManager;
 import com.oldhigh.antiaddiction.R;
 
+import java.util.List;
 import java.util.Set;
 
 public class EditAdActivity extends BaseActivity {
@@ -66,7 +67,7 @@ public class EditAdActivity extends BaseActivity {
     }
 
     public void updateAllAd() {
-        Set<String> allAdName = DataManager.get().getAllAdName();
+        List<String> allAdName = DataManager.get().getAllAdName();
 
         mTextView.setText(allAdName.toString());
     }
