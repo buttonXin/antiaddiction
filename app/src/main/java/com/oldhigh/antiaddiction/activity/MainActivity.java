@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -17,11 +18,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.hjq.toast.ToastUtils;
 import com.oldhigh.antiaddiction.R;
 import com.oldhigh.antiaddiction.service.AntiAddictionService;
+import com.oldhigh.antiaddiction.util.AudioPlayer;
+import com.oldhigh.antiaddiction.util.NotificationHelper;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
     private LinearLayout llContent;
     private View viewChoose;
     private View viewSelected;
@@ -48,47 +52,64 @@ public class MainActivity extends AppCompatActivity {
                 "\n目前选择的应用是30分钟会进行提醒。");
 
 
-        addButton("开启无障碍", view -> {
+        addButton("开启权限", view -> {
             checkService();
 
         });
 
 
-        viewChoose = addButton("选择应用", view -> startActivity(
-                new Intent(getApplicationContext(), ChooseActivity.class)));
+        viewChoose = addButton("测试通知栏", view -> {
+            NotificationHelper.sendNotification(getApplicationContext(), "您已经选择应用了123123");
+        });
+        viewChoose.setVisibility(View.GONE);
 
-        viewSelected = addButton("查看应用", view -> startActivity(
-                new Intent(getApplicationContext(), SelectedActivity.class)));
+//        viewSelected = addButton("查看应用", view -> startActivity(
+//                new Intent(getApplicationContext(), SelectedActivity.class)));
+//
+//
+//        viewAd = addButton("添加广告", view -> startActivity(
+//                new Intent(getApplicationContext(), EditAdActivity.class)));
 
 
-        viewAd = addButton("添加广告", view -> startActivity(
-                new Intent(getApplicationContext(), EditAdActivity.class)));
-
-
-        showButton();
+//        showButton();
 
     }
 
     private void checkService() {
-        if (!isAccessibilitySettingsOn(this,
-                AntiAddictionService.class.getName())) {// 判断服务是否开启
-            jumpToSettingPage(this);// 跳转到开启页面
-        } else {
-            isServiceStart = true;
-            ToastUtils.show("服务已开启，点击选择应用");
-            showButton();
+
+        String enabledListeners = Settings.Secure.getString(
+                getContentResolver(),
+                "enabled_notification_listeners"
+        );
+        String packageName = getPackageName();
+        final boolean notifyPer = enabledListeners != null && enabledListeners.contains(packageName);
+        Log.e(TAG, "checkService: " + notifyPer);
+        if(!notifyPer){
+            Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+            startActivity(intent);
+            return;
         }
+        ToastUtils.show("服务已开启，点击选择应用");
+
+//        if (!isAccessibilitySettingsOn(this,
+//                AntiAddictionService.class.getName())) {// 判断服务是否开启
+//            jumpToSettingPage(this);// 跳转到开启页面
+//        } else {
+//            isServiceStart = true;
+//            ToastUtils.show("服务已开启，点击选择应用");
+            showButton();
+//        }
     }
 
     private void showButton() {
+        viewChoose.setVisibility(View.VISIBLE);
         if (isServiceStart) {
-            viewChoose.setVisibility(View.VISIBLE);
-            viewSelected.setVisibility(View.VISIBLE);
-            viewAd.setVisibility(View.VISIBLE);
+//            viewSelected.setVisibility(View.VISIBLE);
+//            viewAd.setVisibility(View.VISIBLE);
         } else {
-            viewChoose.setVisibility(View.GONE);
-            viewSelected.setVisibility(View.GONE);
-            viewAd.setVisibility(View.GONE);
+//            viewChoose.setVisibility(View.GONE);
+//            viewSelected.setVisibility(View.GONE);
+//            viewAd.setVisibility(View.GONE);
         }
     }
 
