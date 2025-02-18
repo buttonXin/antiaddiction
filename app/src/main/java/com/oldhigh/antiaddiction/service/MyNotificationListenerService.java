@@ -22,16 +22,16 @@ public class MyNotificationListenerService extends NotificationListenerService {
 
         // 获取通知内容
         Notification notification = sbn.getNotification();
-        if (notification != null && notification.extras != null) {
-            CharSequence title = notification.extras.getCharSequence(Notification.EXTRA_TITLE);
-            CharSequence text = notification.extras.getCharSequence(Notification.EXTRA_TEXT);
-
-            Log.d(TAG, "收到通知 - 包名: " + packageName);
-            Log.d(TAG, "标题: " + title);
-            Log.d(TAG, "内容: " + text);
-            hasMatch(title);
-            hasMatch(text);
-        }
+//        if (notification != null && notification.extras != null) {
+//            CharSequence title = notification.extras.getCharSequence(Notification.EXTRA_TITLE);
+//            CharSequence text = notification.extras.getCharSequence(Notification.EXTRA_TEXT);
+//
+//            Log.d(TAG, "收到通知 - 包名: " + packageName);
+//            Log.d(TAG, "标题: " + title);
+//            Log.d(TAG, "内容: " + text);
+//            hasMatch(title);
+//            hasMatch(text);
+//        }
     }
 
     private void hasMatch(CharSequence text) {
@@ -64,9 +64,9 @@ public class MyNotificationListenerService extends NotificationListenerService {
             CharSequence title = notification.extras.getCharSequence(Notification.EXTRA_TITLE);
             CharSequence text = notification.extras.getCharSequence(Notification.EXTRA_TEXT);
 
-            Log.d(TAG, "收到通知 - 包名: " + sbn.getPackageName());
-            Log.d(TAG, "标题: " + title);
-            Log.d(TAG, "内容: " + text);
+//            Log.d(TAG, "收到通知 - 包名: " + sbn.getPackageName());
+//            Log.d(TAG, "标题: " + title);
+//            Log.d(TAG, "内容: " + text);
             if (title != null && title.toString().contains("关闭音乐播放")) {
                 AudioPlayer.getInstance().stop();
             }

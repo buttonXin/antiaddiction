@@ -1,10 +1,12 @@
 package com.oldhigh.antiaddiction.activity;
 
+import android.Manifest;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -17,6 +19,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.hjq.toast.ToastUtils;
 import com.oldhigh.antiaddiction.R;
@@ -112,6 +116,13 @@ public class MainActivity extends AppCompatActivity {
         }
         ToastUtils.show("服务已开启");
 
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.RECEIVE_SMS,
+                    Manifest.permission.READ_SMS
+            }, 1);}
+
 //        if (!isAccessibilitySettingsOn(this,
 //                AntiAddictionService.class.getName())) {// 判断服务是否开启
 //            jumpToSettingPage(this);// 跳转到开启页面
@@ -123,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showButton() {
-        viewChoose.setVisibility(View.VISIBLE);
+//        viewChoose.setVisibility(View.VISIBLE);
         mText.setVisibility(View.VISIBLE);
         mEditText.setVisibility(View.VISIBLE);
         mAddButton.setVisibility(View.VISIBLE);
