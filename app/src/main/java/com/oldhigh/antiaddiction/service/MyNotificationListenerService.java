@@ -1,6 +1,7 @@
 package com.oldhigh.antiaddiction.service;
 
 import android.app.Notification;
+import android.content.SharedPreferences;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.text.TextUtils;
@@ -15,6 +16,7 @@ public class MyNotificationListenerService extends NotificationListenerService {
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         super.onNotificationPosted(sbn);
+
         // 获取通知的包名
         String packageName = sbn.getPackageName();
 
@@ -37,9 +39,13 @@ public class MyNotificationListenerService extends NotificationListenerService {
         if (TextUtils.isEmpty(text)) {
             return;
         }
-        if (text.toString().contains("低于80%")) {
+        SharedPreferences sp = getSharedPreferences("data", MODE_PRIVATE);
+        final String string = sp.getString("key", "告警阈值");
+        Log.e(TAG, "hasMatch: " + string);
+        if (text.toString().contains(string)) {
             playAudio();
-        } if (text.toString().contains("123123")) {
+        }
+        if (text.toString().contains("123123")) {
             playAudio();
         }
     }
@@ -52,5 +58,21 @@ public class MyNotificationListenerService extends NotificationListenerService {
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Log.d(TAG, "通知被移除 - 包名: " + sbn.getPackageName());
+        // 获取通知内容
+        Notification notification = sbn.getNotification();
+        if (notification != null && notification.extras != null) {
+            CharSequence title = notification.extras.getCharSequence(Notification.EXTRA_TITLE);
+            CharSequence text = notification.extras.getCharSequence(Notification.EXTRA_TEXT);
+
+            Log.d(TAG, "收到通知 - 包名: " + sbn.getPackageName());
+            Log.d(TAG, "标题: " + title);
+            Log.d(TAG, "内容: " + text);
+            if (title != null && title.toString().contains("关闭音乐播放")) {
+                AudioPlayer.getInstance().stop();
+            }
+            if (text != null && text.toString().contains("关闭音乐播放")) {
+                AudioPlayer.getInstance().stop();
+            }
+        }
     }
 }

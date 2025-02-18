@@ -4,12 +4,15 @@ import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -17,8 +20,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.hjq.toast.ToastUtils;
 import com.oldhigh.antiaddiction.R;
-import com.oldhigh.antiaddiction.service.AntiAddictionService;
-import com.oldhigh.antiaddiction.util.AudioPlayer;
 import com.oldhigh.antiaddiction.util.NotificationHelper;
 
 import java.util.List;
@@ -30,6 +31,9 @@ public class MainActivity extends AppCompatActivity {
     private View viewChoose;
     private View viewSelected;
     private View viewAd;
+    private TextView mText;
+    private EditText mEditText;
+    private View mAddButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +66,23 @@ public class MainActivity extends AppCompatActivity {
             NotificationHelper.sendNotification(getApplicationContext(), "您已经选择应用了123123");
         });
         viewChoose.setVisibility(View.GONE);
+        SharedPreferences sp = getSharedPreferences("data", MODE_PRIVATE);
+        final String string = sp.getString("key", "告警阈值");
+        mText = addText("当前包含: " + string);
+        mText.setVisibility(View.GONE);
+        mEditText = addEditText("");
+        mEditText.setHint("请输入包含文案");
+        mEditText.setVisibility(View.GONE);
+        mAddButton = addButton("保存", view -> {
+            final String curContent = mEditText.getText().toString().trim();
+            if (TextUtils.isEmpty(curContent)) {
+                ToastUtils.show("请输入包含文案");
+                return;
+            }
+            sp.edit().putString("key", curContent).commit();
+            mText.setText("当前包含: " + curContent);
+        });
+        mAddButton.setVisibility(View.GONE);
 
 //        viewSelected = addButton("查看应用", view -> startActivity(
 //                new Intent(getApplicationContext(), SelectedActivity.class)));
@@ -84,12 +105,12 @@ public class MainActivity extends AppCompatActivity {
         String packageName = getPackageName();
         final boolean notifyPer = enabledListeners != null && enabledListeners.contains(packageName);
         Log.e(TAG, "checkService: " + notifyPer);
-        if(!notifyPer){
+        if (!notifyPer) {
             Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
             startActivity(intent);
             return;
         }
-        ToastUtils.show("服务已开启，点击选择应用");
+        ToastUtils.show("服务已开启");
 
 //        if (!isAccessibilitySettingsOn(this,
 //                AntiAddictionService.class.getName())) {// 判断服务是否开启
@@ -97,12 +118,17 @@ public class MainActivity extends AppCompatActivity {
 //        } else {
 //            isServiceStart = true;
 //            ToastUtils.show("服务已开启，点击选择应用");
-            showButton();
+        showButton();
 //        }
     }
 
     private void showButton() {
         viewChoose.setVisibility(View.VISIBLE);
+        mText.setVisibility(View.VISIBLE);
+        mEditText.setVisibility(View.VISIBLE);
+        mAddButton.setVisibility(View.VISIBLE);
+
+
         if (isServiceStart) {
 //            viewSelected.setVisibility(View.VISIBLE);
 //            viewAd.setVisibility(View.VISIBLE);
@@ -127,12 +153,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private View addText(String text) {
-       return addText(text, v -> {
+    private TextView addText(String text) {
+        return addText(text, v -> {
         });
     }
 
-    private View addText(String text, View.OnClickListener listener) {
+    private TextView addText(String text, View.OnClickListener listener) {
         TextView textView = new TextView(this);
         textView.setText(text);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -142,8 +168,23 @@ public class MainActivity extends AppCompatActivity {
         params.topMargin = 40;
         params.rightMargin = 40;
         params.bottomMargin = 40;
-        params.gravity= Gravity.CENTER;
+        params.gravity = Gravity.CENTER;
         textView.setOnClickListener(listener);
+        llContent.addView(textView, params);
+        return textView;
+    }
+
+    private EditText addEditText(String text) {
+        EditText textView = new EditText(this);
+        textView.setText(text);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.leftMargin = 40;
+        params.topMargin = 40;
+        params.rightMargin = 40;
+        params.bottomMargin = 40;
+        params.gravity = Gravity.CENTER;
         llContent.addView(textView, params);
         return textView;
     }
