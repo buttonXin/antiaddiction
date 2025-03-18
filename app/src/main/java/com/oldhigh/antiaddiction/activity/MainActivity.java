@@ -1,11 +1,13 @@
 package com.oldhigh.antiaddiction.activity;
 
 import android.app.ActivityManager;
+import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -16,12 +18,17 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.hjq.toast.ToastUtils;
 import com.oldhigh.antiaddiction.R;
+import com.oldhigh.antiaddiction.action.MiGuAction;
+import com.oldhigh.antiaddiction.receiver.AdminReceiver;
 import com.oldhigh.antiaddiction.service.AntiAddictionService;
+import com.ven.assists.AssistsCore;
+import com.ven.assists.stepper.StepManager;
 
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
     private LinearLayout llContent;
     private View viewChoose;
     private View viewSelected;
@@ -54,15 +61,33 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        viewChoose = addButton("选择应用", view -> startActivity(
-                new Intent(getApplicationContext(), ChooseActivity.class)));
+        viewChoose = addButton("选择应用", view -> {
+            AssistsCore.INSTANCE.getAllNodes().forEach(node -> {
+                Log.e(TAG, "initData: " + node.toString());
+            });
+        });
 
-        viewSelected = addButton("查看应用", view -> startActivity(
-                new Intent(getApplicationContext(), SelectedActivity.class)));
+        viewSelected = addButton("查看应用", view -> {
+            view.postDelayed(() -> {
+//从MyStepImpl步骤1开始执行，isBegin是否作为起始步骤，默认false
+//                StepManager.execute(MyStepImpl::class.java, 1, isBegin = true)
+                StepManager.INSTANCE.execute(MiGuAction.class, 1, 0, null, true);
+            }, 5000);
+        });
 
 
-        viewAd = addButton("添加广告", view -> startActivity(
-                new Intent(getApplicationContext(), EditAdActivity.class)));
+        viewAd = addButton("通知权限", view -> {
+            Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+            startActivity(intent);
+        });
+
+        viewAd = addButton("锁屏权限", view -> {
+            ComponentName componentName = new ComponentName(this, AdminReceiver.class);
+            Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName);
+            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "--设备管理器--");
+            startActivityForResult(intent, 0);
+        });
 
 
         showButton();
@@ -70,9 +95,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkService() {
-        if (!isAccessibilitySettingsOn(this,
-                AntiAddictionService.class.getName())) {// 判断服务是否开启
-            jumpToSettingPage(this);// 跳转到开启页面
+
+
+        if (!AssistsCore.INSTANCE.isAccessibilityServiceEnabled()) {// 判断服务是否开启
+            AssistsCore.INSTANCE.openAccessibilitySetting();
+            ;// 跳转到开启页面
         } else {
             isServiceStart = true;
             ToastUtils.show("服务已开启，点击选择应用");
@@ -107,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private View addText(String text) {
-       return addText(text, v -> {
+        return addText(text, v -> {
         });
     }
 
@@ -121,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
         params.topMargin = 40;
         params.rightMargin = 40;
         params.bottomMargin = 40;
-        params.gravity= Gravity.CENTER;
+        params.gravity = Gravity.CENTER;
         textView.setOnClickListener(listener);
         llContent.addView(textView, params);
         return textView;
