@@ -6,6 +6,7 @@ import android.service.notification.StatusBarNotification;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.oldhigh.antiaddiction.action.DingDingAction;
 import com.oldhigh.antiaddiction.action.MiGuAction;
 import com.ven.assists.stepper.StepManager;
 
@@ -40,13 +41,16 @@ public class MyNotificationListenerService extends NotificationListenerService {
         }
         if (text.toString().equals("migu")) {
             playAudio();
-        } if (text.toString().contains("123123")) {
-            playAudio();
+        } if (text.toString().contains("打卡")) {
+            ddWorker();
         }
     }
 
     private void playAudio() {
         StepManager.INSTANCE.execute(MiGuAction.class, 1, 0, null, true);
+    }
+    private void ddWorker() {
+        StepManager.INSTANCE.execute(DingDingAction.class, 1, 0, null, true);
     }
 
     @Override

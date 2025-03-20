@@ -5,16 +5,22 @@ import android.app.Application;
 import com.hjq.toast.ToastStrategy;
 import com.hjq.toast.ToastUtils;
 
-public class App  extends Application {
+public class App extends Application {
 
+    private static App instance;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        ToastUtils.init(this,new ToastStrategy(){
+        instance = this;
+        ToastUtils.init(this, new ToastStrategy() {
 
         });
         DataManager.get().init(this);
 
+    }
+
+    public static App getInstance() {
+        return instance;
     }
 }
