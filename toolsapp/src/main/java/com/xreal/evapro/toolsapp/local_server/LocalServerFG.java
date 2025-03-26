@@ -3,10 +3,10 @@ package com.xreal.evapro.toolsapp.local_server;
 import android.Manifest;
 import android.content.Intent;
 import android.provider.Settings;
-import android.util.Log;
+import com.xreal.evapro.toolsapp.util.LogControl;
 import android.widget.TextView;
 
-import com.xreal.evapro.toolsapp.BaseOLFragment;
+import com.xreal.evapro.toolsapp.base.BaseOLFragment;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -37,7 +37,7 @@ public class LocalServerFG extends BaseOLFragment {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        Log.e(TAG, "onActivityResult: " + requestCode);
+        LogControl.d(TAG, "onActivityResult: " + requestCode);
         if (requestCode == 110) {
             startActivity(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
             toast("权限已经允许");
@@ -80,13 +80,18 @@ public class LocalServerFG extends BaseOLFragment {
     private static final int REQUEST_PERMISSION_CODE = 100;
     private FileServer fileServer;
 
+    @Override
+    protected boolean isBlackScreen() {
+        return true;
+    }
+
     private void startServer() {
         try {
             fileServer = new FileServer(PORT, getActivity(), isOnlyDownload);
             fileServer.start();
             String ipAddress = getIPAddress(true); // 获取本地IP
             toast("Server started at: http://" + ipAddress + ":" + PORT);
-            Log.e(TAG, "startServer: ipAddress=" + ipAddress);
+            LogControl.d(TAG, "startServer: ipAddress=" + ipAddress);
             mTextView.setText("浏览器输入: http://" + ipAddress + ":" + PORT +
                     "\n即可再相同网络下,下载手机的所有文件;" +
                     "\n需要保证当前应用一直在前台!!!");

@@ -3,12 +3,12 @@ package com.xreal.evapro.toolsapp.camrea;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
-import android.util.Log;
+import com.xreal.evapro.toolsapp.util.LogControl;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 
-import com.xreal.evapro.toolsapp.BaseOLFragment;
+import com.xreal.evapro.toolsapp.base.BaseOLFragment;
 
 import java.io.IOException;
 
@@ -81,7 +81,7 @@ public class CameraPreviewFG extends BaseOLFragment {
 
         try {
             final int numberOfCameras = Camera.getNumberOfCameras();
-            Log.e(TAG, "openCamera: numberOfCameras=" + numberOfCameras);
+            LogControl.d(TAG, "openCamera: numberOfCameras=" + numberOfCameras);
 
             camera = Camera.open(mCameraId); // 打开后置摄像头
             Camera.Parameters parameters = camera.getParameters();

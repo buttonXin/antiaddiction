@@ -9,10 +9,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.text.TextUtils;
-import android.util.Log;
+import com.xreal.evapro.toolsapp.util.LogControl;
 import android.widget.EditText;
 
-import com.xreal.evapro.toolsapp.BaseOLFragment;
+import com.xreal.evapro.toolsapp.base.BaseOLFragment;
 
 import java.io.OutputStream;
 
@@ -99,7 +99,7 @@ public class CopyClipToFileFG extends BaseOLFragment {
         Uri fileUri = resolver.insert(collection, values); // 插入到 MediaStore
 
         if (fileUri == null) {
-            Log.e("FileSaveUtil", "Failed to create file URI");
+            LogControl.d("FileSaveUtil", "Failed to create file URI");
             return;
         }
 
@@ -108,10 +108,10 @@ public class CopyClipToFileFG extends BaseOLFragment {
             if (outputStream != null) {
                 outputStream.write(content.getBytes()); // 写入字符串数据
                 outputStream.flush();
-                Log.i("FileSaveUtil", "File saved successfully: " + fileUri.toString());
+                LogControl.d("FileSaveUtil", "File saved successfully: " + fileUri.toString());
             }
         } catch (Exception e) {
-            Log.e("FileSaveUtil", "Error saving file: " + e.getMessage());
+            LogControl.d("FileSaveUtil", "Error saving file: " + e.getMessage());
         }
     }
 
@@ -130,11 +130,11 @@ public class CopyClipToFileFG extends BaseOLFragment {
                     long id = cursor.getLong(idIndex);
                     Uri fileUri = Uri.withAppendedPath(collection, String.valueOf(id));
                     resolver.delete(fileUri, null, null); // 删除文件
-                    Log.i("FileSaveUtil", "Deleted existing file: " + fileName);
+                    LogControl.d("FileSaveUtil", "Deleted existing file: " + fileName);
                 }
             }
         } catch (Exception e) {
-            Log.e("FileSaveUtil", "Error deleting existing file: " + e.getMessage());
+            LogControl.d("FileSaveUtil", "Error deleting existing file: " + e.getMessage());
         }
     }
 }
