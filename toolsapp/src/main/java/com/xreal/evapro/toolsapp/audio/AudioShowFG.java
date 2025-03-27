@@ -48,6 +48,13 @@ public class AudioShowFG extends BaseOLFragment {
 
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(runnable);
+        handler.removeCallbacksAndMessages(null);
+    }
+
     private void stop() {
         Log.e(TAG, "stop: ");
         handler.removeCallbacks(runnable);
