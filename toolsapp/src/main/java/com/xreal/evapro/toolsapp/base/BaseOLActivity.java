@@ -9,10 +9,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+
+import com.xreal.evapro.toolsapp.R;
 import com.xreal.evapro.toolsapp.util.LogControl;
 import android.util.Size;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
@@ -84,8 +87,20 @@ public abstract class BaseOLActivity extends Activity {
         mFrameLayout.addView(scrollView, 0);
         mFrameLayout.setBackgroundColor(Color.WHITE);
         setContentView(mFrameLayout);
+        addBg();
 
         initData();
+    }
+    private void addBg() {
+        ImageView view = new ImageView(this);
+
+        view.setImageDrawable(getDrawable(R.drawable.ol_bg));
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
+        view.setLayoutParams(params);
+        view.setScaleType(ImageView.ScaleType.FIT_XY);
+        addFullscreenView(view);
     }
 
     private void addTitleBar() {
