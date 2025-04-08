@@ -10,10 +10,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-
-import com.xreal.evapro.toolsapp.R;
-import com.xreal.evapro.toolsapp.util.LogControl;
-
 import android.util.Size;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -30,6 +26,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.xreal.evapro.toolsapp.ActivityLifecycleHelper;
+import com.xreal.evapro.toolsapp.R;
+import com.xreal.evapro.toolsapp.util.LogControl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +39,7 @@ public abstract class BaseOLFragment extends Fragment {
     private LinearLayout llContent;
 
     protected Handler handler = new Handler(Looper.getMainLooper());
-    private FrameLayout mFrameLayout;
+    protected FrameLayout mFrameLayout;
     public Activity mActivity;
 
     // 距离下面view的边距
@@ -57,10 +55,60 @@ public abstract class BaseOLFragment extends Fragment {
         TAG = getClass().getSimpleName();
         mActivity = getActivity();
 
+        if(hasFullScreen()){
+            View decorView = mActivity.getWindow().getDecorView();
+            // Hide the status bar.
+            // Hide the navigation bar.
+            int uiOptions =  View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+
+            decorView.setSystemUiVisibility(uiOptions);
+            // 设置监听系统 UI 可见性变化
+            decorView.setOnSystemUiVisibilityChangeListener(visibility -> {
+                boolean isFullscreen = (visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) != 0;
+
+                if (!isFullscreen) {
+                    // 用户下拉状态栏后延迟再次隐藏
+                    decorView.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            decorView.setSystemUiVisibility(uiOptions);
+                        }
+                    },3000);
+
+                }
+            });
+        }
     }
 
     protected boolean isBlackScreen() {
         return false;
+    }
+
+    protected boolean hasBg() {
+        return true;
+    }
+    protected boolean hasFullScreen() {
+        return false;
+    }
+
+    public BaseOLFragment setBaseParams(String content) {
+        final Bundle args = new Bundle();
+        args.putString("content", content);
+        setArguments(args);
+        return this;
+    }
+
+    protected String getContent() {
+        final Bundle args = getArguments();
+        if (args != null) {
+            return args.getString("content");
+        }
+        return "";
     }
 
 
@@ -79,12 +127,15 @@ public abstract class BaseOLFragment extends Fragment {
 
         addTitleBar();
 
-        addBg();
+        if (hasBg()) {
+            addBg();
+        }
 
         initData();
 
         return mFrameLayout;
     }
+
     private void addBg() {
         ImageView view = new ImageView(mActivity);
 
@@ -103,6 +154,9 @@ public abstract class BaseOLFragment extends Fragment {
 
     protected void addTitleBar(String text) {
 
+        if (TextUtils.isEmpty(text)) {
+            return;
+        }
         final TextView view = new TextView(mActivity);
         final LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         layoutParams.setMargins(0, 30, 0, 30);
@@ -368,7 +422,7 @@ public abstract class BaseOLFragment extends Fragment {
     }
 
     public View addFullscreenView(View view) {
-        mFrameLayout.addView(view, 1);
+        mFrameLayout.addView(view);
         return view;
     }
 

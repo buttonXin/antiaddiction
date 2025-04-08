@@ -1,9 +1,12 @@
 package com.xreal.evapro.toolsapp;
 
+import android.view.View;
+
 import com.xreal.evapro.toolsapp.audio.AudioParentFG;
 import com.xreal.evapro.toolsapp.base.BaseOLActivity;
 import com.xreal.evapro.toolsapp.camrea.CameraPreviewFG;
 import com.xreal.evapro.toolsapp.local_server.LocalServerFG;
+import com.xreal.evapro.toolsapp.magnifier.MagnifierShowFG;
 
 public class MainActivity extends BaseOLActivity {
 
@@ -21,6 +24,7 @@ public class MainActivity extends BaseOLActivity {
         addButton("后置摄像头", 2, v -> new CameraPreviewFG(0).openFragment(getFragmentManager()));
         addButton("前置摄像头", 2, v -> new CameraPreviewFG(1).openFragment(getFragmentManager()));
         addButton("语音功能", v -> new AudioParentFG().openFragment(getFragmentManager()));
+        addButton("放大镜", v -> new MagnifierShowFG().openFragment(getFragmentManager()));
 
 
     }

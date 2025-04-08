@@ -31,6 +31,11 @@ public class AudioShowFG extends BaseOLFragment {
     }
 
     @Override
+    protected boolean hasBg() {
+        return false;
+    }
+
+    @Override
     public void initData() {
         mBtnStart = addButton("开始", 100, v -> {
             currentIndex = 0;

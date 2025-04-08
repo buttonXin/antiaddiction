@@ -3,7 +3,9 @@ package com.xreal.evapro.toolsapp.camrea;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
+
 import com.xreal.evapro.toolsapp.util.LogControl;
+
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -28,6 +30,11 @@ public class CameraPreviewFG extends BaseOLFragment {
     @Override
     protected void addTitleBar(String text) {
         super.addTitleBar("");
+    }
+
+    @Override
+    protected boolean hasFullScreen() {
+        return true;
     }
 
     @Override
