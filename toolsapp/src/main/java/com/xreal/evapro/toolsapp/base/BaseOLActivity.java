@@ -9,10 +9,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-
-import com.xreal.evapro.toolsapp.R;
-import com.xreal.evapro.toolsapp.util.LogControl;
 import android.util.Size;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +24,11 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.xreal.evapro.toolsapp.R;
+import com.xreal.evapro.toolsapp.util.DensityUtil;
+import com.xreal.evapro.toolsapp.util.LogControl;
+import com.xreal.evapro.toolsapp.view.TextSwitchView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -91,6 +94,7 @@ public abstract class BaseOLActivity extends Activity {
 
         initData();
     }
+
     private void addBg() {
         ImageView view = new ImageView(this);
 
@@ -100,7 +104,7 @@ public abstract class BaseOLActivity extends Activity {
                 ViewGroup.LayoutParams.MATCH_PARENT);
         view.setLayoutParams(params);
         view.setScaleType(ImageView.ScaleType.FIT_XY);
-        addFullscreenView(view);
+        mFrameLayout.addView(view, 0);
     }
 
     private void addTitleBar() {
@@ -139,7 +143,11 @@ public abstract class BaseOLActivity extends Activity {
 
         Button button = new Button(llContent.getContext());
         button.setText(name);
+        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         button.setAllCaps(false);
+        button.setBackgroundResource(android.R.drawable.dialog_holo_light_frame);
+        int padding = DensityUtil.dip2px(15);
+        button.setPadding(padding, padding, padding, padding);
         if (listener != null) {
             button.setOnClickListener(v -> {
                 LogControl.d(TAG, name + " onClick: ");
@@ -156,7 +164,11 @@ public abstract class BaseOLActivity extends Activity {
 
         Button button = new Button(llContent.getContext());
         button.setText(name);
+        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         button.setAllCaps(false);
+        button.setBackgroundResource(android.R.drawable.dialog_holo_light_frame);
+        int padding = DensityUtil.dip2px(15);
+        button.setPadding(padding, padding, padding, padding);
         if (listener != null) {
             button.setOnClickListener(v -> {
                 LogControl.d(TAG, name + " onClick: ");
@@ -202,6 +214,8 @@ public abstract class BaseOLActivity extends Activity {
     public TextView addText(String name, View.OnClickListener listener) {
         TextView view = new TextView(llContent.getContext());
         view.setText(name);
+        view.setTextColor(Color.BLACK);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         view.setAllCaps(false);
         if (listener != null) {
             view.setOnClickListener(v -> {
@@ -217,6 +231,8 @@ public abstract class BaseOLActivity extends Activity {
     public TextView addText(String name, int index, View.OnClickListener listener) {
         TextView view = new TextView(llContent.getContext());
         view.setText(name);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        view.setTextColor(Color.BLACK);
         view.setAllCaps(false);
         if (listener != null) {
             view.setOnClickListener(v -> {
@@ -282,6 +298,24 @@ public abstract class BaseOLActivity extends Activity {
         llContent.addView(view);
     }
 
+    public TextSwitchView addSwitch(String text, boolean checked, TextSwitchView.OnCheckedChangeListener listener) {
+        TextSwitchView switchView = new TextSwitchView(this);
+        switchView.setText(text);
+        switchView.setChecked(checked);
+        switchView.setOnCheckedChangeListener(listener);
+        addLlView(switchView);
+        return switchView;
+    }
+
+    public TextSwitchView addSwitch(String text, int index, boolean checked, TextSwitchView.OnCheckedChangeListener listener) {
+        TextSwitchView view = new TextSwitchView(llContent.getContext());
+        view.setText(text);
+        view.setChecked(checked);
+        view.setOnCheckedChangeListener(listener);
+        addHorizontalLlView(view, index);
+        return view;
+    }
+
     private final Map<Integer, LinearLayout> mLlHorizontalMap = new HashMap<>();
 
 
@@ -302,9 +336,8 @@ public abstract class BaseOLActivity extends Activity {
             llView.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
             final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            params.leftMargin = 20;
-            params.topMargin = getBottomMargin();
-            params.bottomMargin = getBottomMargin();
+            final int dip2px = DensityUtil.dip2px(5);
+            params.setMargins(dip2px, dip2px, dip2px, dip2px);
             scrollView.addView(llView, params);
             scrollView.setBackgroundColor(Color.parseColor("#1A3F3F3F"));
             addLlView(scrollView);
@@ -347,7 +380,7 @@ public abstract class BaseOLActivity extends Activity {
     }
 
     public View addFullscreenView(View view) {
-        mFrameLayout.addView(view, 0);
+        mFrameLayout.addView(view);
         return view;
     }
 

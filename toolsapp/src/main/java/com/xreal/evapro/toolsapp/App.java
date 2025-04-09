@@ -2,6 +2,8 @@ package com.xreal.evapro.toolsapp;
 
 import android.app.Application;
 
+import com.xreal.evapro.toolsapp.util.ActivityLifecycleHelper;
+
 public class App extends Application {
 
     public static App instance;

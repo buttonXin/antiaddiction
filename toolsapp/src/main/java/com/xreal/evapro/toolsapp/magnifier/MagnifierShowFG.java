@@ -18,6 +18,9 @@ import com.xreal.evapro.toolsapp.base.BaseOLFragment;
 import com.xreal.evapro.toolsapp.util.DensityUtil;
 import com.xreal.evapro.toolsapp.util.LogControl;
 
+/**
+ * 放大镜功能
+ */
 public class MagnifierShowFG extends BaseOLFragment {
 
     private int textSize = 20;

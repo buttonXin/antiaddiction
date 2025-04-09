@@ -1,4 +1,4 @@
-package com.xreal.evapro.toolsapp;
+package com.xreal.evapro.toolsapp.util;
 
 import android.app.Activity;
 import android.app.Application;

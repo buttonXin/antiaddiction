@@ -6,15 +6,15 @@ import android.widget.TextView;
 
 import com.xreal.evapro.toolsapp.base.BaseOLFragment;
 
-import java.util.List;
-
 public class AudioConfigFG extends BaseOLFragment {
     private static final String TAG = AudioConfigFG.class.getSimpleName();
     private TextView mTVStartTime;
     private Button mBtnRecord;
-    private int noteTime = 1;
+    private int noteTime = 5;
     private TextView mTVDelayTime;
     private TextView mTVVolume;
+    private Button mBtnRecordStop;
+    private TextView mTVAudioSize;
 
     @Override
     protected void addTitleBar(String text) {
@@ -27,19 +27,14 @@ public class AudioConfigFG extends BaseOLFragment {
 
         addButton("清空所有录音", v -> {
             AudioHelper.getInstance().clearDeleteAudioFile();
+            toast("清空成功");
         });
         delayTimeView();
         configAudioVolume();
         audioRecord();
 
-        addButton("所以音频内容", v -> {
-            final List<AudioBean> audioList = AudioHelper.getInstance().getAudioList();
-            for (AudioBean audioBean : audioList) {
-                addText("time=" + audioBean.time + "__ index="
-                        + audioBean.index + "__" + audioBean.audioPath, audioBean.index);
-            }
-
-        });
+        mTVAudioSize = addText("当前音频数量: " + AudioHelper.getInstance().getAudioList().size());
+        addButton("显示详情页", v -> new AudioShowFG().openFragment(getFragmentManager()));
     }
 
     private void audioRecord() {
@@ -48,14 +43,20 @@ public class AudioConfigFG extends BaseOLFragment {
             startTimer();
             mTVStartTime.setVisibility(View.VISIBLE);
             mBtnRecord.setEnabled(false);
+            mBtnRecordStop.setEnabled(true);
         });
-        addButton("停止音频", 20, v -> {
+        mBtnRecordStop = addButton("结束音频录制", 20, v -> {
+            toast("当前音频保存成功");
+
             AudioHelper.getInstance().stopRecording(noteTime);
             mBtnRecord.setEnabled(true);
+            mBtnRecordStop.setEnabled(false);
             stopTimer();
             noteTime = 1;
             mTVDelayTime.setText(String.format("倒计时:%d 分", noteTime));
+            mTVAudioSize.setText("当前音频数量: " + AudioHelper.getInstance().getAudioList().size());
         });
+        mBtnRecordStop.setEnabled(false);
         mTVStartTime = addText("录制时间:", 20);
     }
 

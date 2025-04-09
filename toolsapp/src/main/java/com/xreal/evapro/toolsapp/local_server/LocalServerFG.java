@@ -3,7 +3,9 @@ package com.xreal.evapro.toolsapp.local_server;
 import android.Manifest;
 import android.content.Intent;
 import android.provider.Settings;
+
 import com.xreal.evapro.toolsapp.util.LogControl;
+
 import android.widget.TextView;
 
 import com.xreal.evapro.toolsapp.base.BaseOLFragment;
@@ -85,6 +87,7 @@ public class LocalServerFG extends BaseOLFragment {
         return true;
     }
 
+
     private void startServer() {
         try {
             fileServer = new FileServer(PORT, getActivity(), isOnlyDownload);
@@ -94,7 +97,7 @@ public class LocalServerFG extends BaseOLFragment {
             LogControl.d(TAG, "startServer: ipAddress=" + ipAddress);
             mTextView.setText("浏览器输入: http://" + ipAddress + ":" + PORT +
                     "\n即可再相同网络下,下载手机的所有文件;" +
-                    "\n需要保证当前应用一直在前台!!!");
+                    "\n\n需要保证当前应用一直在前台!!!");
             mTextView.setKeepScreenOn(true);
         } catch (IOException e) {
             e.printStackTrace();

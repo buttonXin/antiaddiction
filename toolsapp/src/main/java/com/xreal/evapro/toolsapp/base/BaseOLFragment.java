@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Size;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,9 +26,11 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.xreal.evapro.toolsapp.ActivityLifecycleHelper;
 import com.xreal.evapro.toolsapp.R;
+import com.xreal.evapro.toolsapp.util.ActivityLifecycleHelper;
+import com.xreal.evapro.toolsapp.util.DensityUtil;
 import com.xreal.evapro.toolsapp.util.LogControl;
+import com.xreal.evapro.toolsapp.view.TextSwitchView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,10 +44,12 @@ public abstract class BaseOLFragment extends Fragment {
     protected Handler handler = new Handler(Looper.getMainLooper());
     protected FrameLayout mFrameLayout;
     public Activity mActivity;
+    private View mDecorView;
+    private OnDestroyListener mDestroyListener;
 
     // 距离下面view的边距
     public int getBottomMargin() {
-        return 40;
+        return 20;
     }
 
     public abstract void initData();
@@ -55,43 +60,63 @@ public abstract class BaseOLFragment extends Fragment {
         TAG = getClass().getSimpleName();
         mActivity = getActivity();
 
-        if(hasFullScreen()){
-            View decorView = mActivity.getWindow().getDecorView();
-            // Hide the status bar.
-            // Hide the navigation bar.
-            int uiOptions =  View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-
-            decorView.setSystemUiVisibility(uiOptions);
+        if (hasFullScreen()) {
+            mDecorView = mActivity.getWindow().getDecorView();
+            fullScreen();
             // 设置监听系统 UI 可见性变化
-            decorView.setOnSystemUiVisibilityChangeListener(visibility -> {
+            mDecorView.setOnSystemUiVisibilityChangeListener(visibility -> {
                 boolean isFullscreen = (visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) != 0;
-
                 if (!isFullscreen) {
                     // 用户下拉状态栏后延迟再次隐藏
-                    decorView.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            decorView.setSystemUiVisibility(uiOptions);
-                        }
-                    },3000);
-
+                    handler.postDelayed(this::fullScreen, 3000);
                 }
             });
         }
     }
 
+    /**
+     * 沉浸式全屏
+     */
+    private void fullScreen() {
+
+        // Hide the status bar.
+        // Hide the navigation bar.
+        int uiOptions = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+
+        if (mDecorView != null) {
+            mDecorView.setSystemUiVisibility(uiOptions);
+        }
+
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+        }
+        if (mDecorView != null && hasFullScreen()) {
+            mDecorView.setOnSystemUiVisibilityChangeListener(null);
+            mDecorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+        }
+        if (mDestroyListener != null) {
+            mDestroyListener.onDestroy();
+        }
+
+    }
+
+    /**
+     * 黑色背景,就不需要增加addBg();
+     */
     protected boolean isBlackScreen() {
         return false;
     }
 
-    protected boolean hasBg() {
-        return true;
-    }
     protected boolean hasFullScreen() {
         return false;
     }
@@ -127,7 +152,7 @@ public abstract class BaseOLFragment extends Fragment {
 
         addTitleBar();
 
-        if (hasBg()) {
+        if (!isBlackScreen()) {
             addBg();
         }
 
@@ -182,38 +207,35 @@ public abstract class BaseOLFragment extends Fragment {
     /**
      * 打开fg
      */
-    public void openFragment(FragmentManager fragmentManager) {
+    public BaseOLFragment openFragment(FragmentManager fragmentManager) {
         fragmentManager.beginTransaction().add(android.R.id.content, this).addToBackStack(null).commit();
+        return this;
     }
+
+    public BaseOLFragment setOnDestroyListener(OnDestroyListener listener) {
+        mDestroyListener = listener;
+        return this;
+    }
+
 
     public void removeFragment() {
         getActivity().getFragmentManager().beginTransaction().remove(this).commit();
     }
-//    public <T extends BaseOLFragment> void openFragment(T fragment) {
-//        getActivity().getSupportFragmentManager().beginTransaction()
-//                .replace(android.R.id.content, fragment).addToBackStack(null).commit();
-//    }
-//
-//    public static <T extends BaseOLFragment> void openFragment(FragmentActivity activity, Class<T> clazz) {
-//
-//        try {
-//            activity.getSupportFragmentManager().beginTransaction()
-//                    .replace(android.R.id.content, clazz.newInstance())
-//                    .addToBackStack(null)
-//                    .commit();
-//        } catch (IllegalAccessException e) {
-//            throw new RuntimeException(e);
-//        } catch (java.lang.InstantiationException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+
+    public interface OnDestroyListener {
+        void onDestroy();
+    }
 
 
     public Button addButton(String name, View.OnClickListener listener) {
 
         Button button = new Button(llContent.getContext());
         button.setText(name);
+        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         button.setAllCaps(false);
+        button.setBackgroundResource(android.R.drawable.dialog_holo_light_frame);
+        int padding = DensityUtil.dip2px(15);
+        button.setPadding(padding, padding, padding, padding);
         if (listener != null) {
             button.setOnClickListener(v -> {
                 LogControl.d(TAG, name + " onClick: ");
@@ -230,7 +252,11 @@ public abstract class BaseOLFragment extends Fragment {
 
         Button button = new Button(llContent.getContext());
         button.setText(name);
+        button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         button.setAllCaps(false);
+        button.setBackgroundResource(android.R.drawable.dialog_holo_light_frame);
+        int padding = DensityUtil.dip2px(15);
+        button.setPadding(padding, padding, padding, padding);
         if (listener != null) {
             button.setOnClickListener(v -> {
                 LogControl.d(TAG, name + " onClick: ");
@@ -276,6 +302,7 @@ public abstract class BaseOLFragment extends Fragment {
 
         view.setText(name);
         view.setTextColor(isBlackScreen() ? Color.WHITE : Color.BLACK);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         view.setAllCaps(false);
         if (listener != null) {
             view.setOnClickListener(v -> {
@@ -293,6 +320,7 @@ public abstract class BaseOLFragment extends Fragment {
 
         view.setText(name);
         view.setTextColor(isBlackScreen() ? Color.WHITE : Color.BLACK);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         view.setAllCaps(false);
         if (listener != null) {
             view.setOnClickListener(v -> {
@@ -344,6 +372,26 @@ public abstract class BaseOLFragment extends Fragment {
         return view;
     }
 
+    public TextSwitchView addSwitch(String text, boolean checked, TextSwitchView.OnCheckedChangeListener listener) {
+        TextSwitchView view = new TextSwitchView(llContent.getContext());
+        view.setText(text);
+        view.setTextColor(isBlackScreen() ? Color.WHITE : Color.BLACK);
+        view.setChecked(checked);
+        view.setOnCheckedChangeListener(listener);
+        addLlView(view);
+        return view;
+    }
+
+    public TextSwitchView addSwitch(String text, int index, boolean checked, TextSwitchView.OnCheckedChangeListener listener) {
+        TextSwitchView view = new TextSwitchView(llContent.getContext());
+        view.setText(text);
+        view.setTextColor(isBlackScreen() ? Color.WHITE : Color.BLACK);
+        view.setChecked(checked);
+        view.setOnCheckedChangeListener(listener);
+        addHorizontalLlView(view, index);
+        return view;
+    }
+
     public void addLine() {
         final View view = new View(llContent.getContext());
         final LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
@@ -374,8 +422,8 @@ public abstract class BaseOLFragment extends Fragment {
             llView.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
             final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             params.leftMargin = 20;
-            params.topMargin = getBottomMargin();
-            params.bottomMargin = getBottomMargin();
+            params.topMargin = 20;
+            params.bottomMargin = 20;
             scrollView.addView(llView, params);
             scrollView.setBackgroundColor(Color.parseColor("#1A3F3F3F"));
             addLlView(scrollView);
@@ -432,7 +480,11 @@ public abstract class BaseOLFragment extends Fragment {
 
     protected void toast(String text) {
         try {
-            handler.post(() -> Toast.makeText(ActivityLifecycleHelper.getActivity(), text, Toast.LENGTH_SHORT).show());
+            if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
+                Toast.makeText(ActivityLifecycleHelper.getActivity(), text, Toast.LENGTH_SHORT).show();
+            } else {
+                handler.post(() -> Toast.makeText(ActivityLifecycleHelper.getActivity(), text, Toast.LENGTH_SHORT).show());
+            }
         } catch (Exception e) {
             LogControl.d(TAG, "toast: " + e.getMessage());
         }

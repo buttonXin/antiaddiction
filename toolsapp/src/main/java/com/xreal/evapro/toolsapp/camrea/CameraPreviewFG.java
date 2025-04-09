@@ -3,23 +3,22 @@ package com.xreal.evapro.toolsapp.camrea;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
-
-import com.xreal.evapro.toolsapp.util.LogControl;
-
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 
 import com.xreal.evapro.toolsapp.base.BaseOLFragment;
+import com.xreal.evapro.toolsapp.util.LogControl;
 
 import java.io.IOException;
 
+/**
+ * 全屏相机功能
+ */
 public class CameraPreviewFG extends BaseOLFragment {
 
-    private final int mCameraId;
+    private int mCameraId;
 
-    public CameraPreviewFG(int cameraId) {
-        mCameraId = cameraId;
+    public CameraPreviewFG() {
     }
 
     private static final String TAG = CameraPreviewFG.class.getSimpleName();
@@ -40,13 +39,7 @@ public class CameraPreviewFG extends BaseOLFragment {
     @Override
     public void initData() {
 
-        View decorView = mActivity.getWindow().getDecorView();
-        // Hide the status bar.
-        // Hide the navigation bar.
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_FULLSCREEN;
-        decorView.setSystemUiVisibility(uiOptions);
-
+        mCameraId = Integer.parseInt(getContent());
 
         surfaceView = new SurfaceView(mActivity);
         surfaceView.setKeepScreenOn(true);

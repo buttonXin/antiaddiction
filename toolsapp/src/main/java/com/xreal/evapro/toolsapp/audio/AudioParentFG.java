@@ -2,11 +2,14 @@ package com.xreal.evapro.toolsapp.audio;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+
 import com.xreal.evapro.toolsapp.util.LogControl;
 
 import com.xreal.evapro.toolsapp.base.BaseOLFragment;
 
-
+/**
+ * 音频功能
+ */
 public class AudioParentFG extends BaseOLFragment {
 
     @Override
@@ -34,7 +37,7 @@ public class AudioParentFG extends BaseOLFragment {
             addButton("申请音频权限", v -> requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 110));
         }
 
-        addButton("倒计时语音功能-配置", 1,v -> new AudioConfigFG().openFragment(getFragmentManager()));
-        addButton("显示", 1,v -> new AudioShowFG().openFragment(getFragmentManager()));
+        addButton("倒计时语音功能-配置", v -> new AudioConfigFG().openFragment(getFragmentManager()));
+        addButton("显示", v -> new AudioShowFG().openFragment(getFragmentManager()));
     }
 }

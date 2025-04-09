@@ -25,15 +25,13 @@ public class AudioShowFG extends BaseOLFragment {
     };
     private int currentIndex = -1;
 
+    private boolean isLooping = false;
+
     @Override
     protected boolean isBlackScreen() {
         return true;
     }
 
-    @Override
-    protected boolean hasBg() {
-        return false;
-    }
 
     @Override
     public void initData() {
@@ -43,8 +41,11 @@ public class AudioShowFG extends BaseOLFragment {
             addAllView();
         });
         mBtnStart.setKeepScreenOn(true);
-        addButton("暂停", 100, v -> {
+        addButton("结束", 100, v -> {
             stop();
+        });
+        addSwitch("循环播放", 100, false, (view, isChecked) -> {
+            isLooping = isChecked;
         });
 
 
@@ -102,6 +103,13 @@ public class AudioShowFG extends BaseOLFragment {
         }
         LogControl.d("currentIndex=", currentIndex, "audioBean.index=", audioBean.index);
         if (currentIndex > 0 && currentIndex >= audioList.size()) {
+            toast("播放完成");
+            LogControl.d("looping=", isLooping);
+            if (isLooping) {
+                currentIndex = 0;
+                addAllView();
+                return;
+            }
             stop();
         }
     }
