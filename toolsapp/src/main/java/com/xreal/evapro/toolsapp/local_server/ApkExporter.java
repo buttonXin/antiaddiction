@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 
+import com.xreal.evapro.toolsapp.BuildConfig;
 import com.xreal.evapro.toolsapp.R;
 
 import java.io.File;
@@ -29,7 +30,7 @@ public class ApkExporter {
 
         // 2. 设置目标文件路径
         String destinationPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                + File.separator + context.getResources().getString(R.string.app_name) + ".apk";
+                + File.separator + context.getResources().getString(R.string.app_name) + BuildConfig.impl_info + ".apk";
         File sourceFile = new File(apkPath);
         File destinationFile = new File(destinationPath);
 
