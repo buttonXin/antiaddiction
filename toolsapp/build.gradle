@@ -12,7 +12,8 @@ android {
         targetSdk 33
         versionCode 8
         versionName "1.5"
-
+        archivesBaseName = "toosapp-" + defaultConfig.versionName + '-' + defaultConfig.versionCode + '-' + (new Date().format("yyyy-MMdd-HHmm"))
+        buildConfigField 'String', 'impl_info', "\"$defaultConfig.versionName-$defaultConfig.versionCode-${(new Date().format("yyyy-MMdd-HHmm"))}\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 

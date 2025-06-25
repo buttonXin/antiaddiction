@@ -9,6 +9,10 @@ public class HomeConfigFg extends BaseOLFragment {
     public static final String AUDIO_PAGE = "AUDIO_PAGE";
     public static final String MAGNIFIER_PAGE = "MAGNIFIER_PAGE";
 
+    @Override
+    protected void addTitleBar(String text) {
+        super.addTitleBar(BuildConfig.impl_info);
+    }
 
     @Override
     public void initData() {

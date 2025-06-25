@@ -18,7 +18,6 @@ import com.xreal.evapro.toolsapp.local_server.LocalServerFG;
 import com.xreal.evapro.toolsapp.magnifier.MagnifierShowFG;
 import com.xreal.evapro.toolsapp.note.NoteAct;
 import com.xreal.evapro.toolsapp.util.DensityUtil;
-import com.xreal.evapro.toolsapp.util.NotificationHelper;
 import com.xreal.evapro.toolsapp.util.SPUtils;
 
 public class MainActivity extends BaseOLActivity {
