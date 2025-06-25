@@ -2,13 +2,16 @@ package com.xreal.evapro.toolsapp.local_server;
 
 import android.Manifest;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.provider.Settings;
-
-import com.xreal.evapro.toolsapp.util.LogControl;
-
+import android.util.Size;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.xreal.evapro.toolsapp.R;
 import com.xreal.evapro.toolsapp.base.BaseOLFragment;
+import com.xreal.evapro.toolsapp.util.LogControl;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -20,10 +23,7 @@ import java.util.List;
 public class LocalServerFG extends BaseOLFragment {
 
     private boolean isOnlyDownload;
-
-    public LocalServerFG(boolean isOnlyDownload) {
-        this.isOnlyDownload = isOnlyDownload;
-    }
+    private ImageView mImageView;
 
     public LocalServerFG() {
     }
@@ -49,7 +49,10 @@ public class LocalServerFG extends BaseOLFragment {
     @Override
     public void initData() {
 
+        isOnlyDownload = getContent().equals("true");
         mTextView = addText("");
+        mImageView = addImage(getResources().getDrawable(R.mipmap.ic_launcher), new Size(500, 500));
+        mImageView.setVisibility(View.GONE);
         addButton("申请权限", v -> {
             // 动态申请权限
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 110);
@@ -58,6 +61,9 @@ public class LocalServerFG extends BaseOLFragment {
 
         addButton("开启服务", 2, v -> {
             startServer();
+            mImageView.setVisibility(View.VISIBLE);
+            final Bitmap bitmap = QRCodeGenerator.generateQRCode(localIpAddress, 500, 500);
+            mImageView.setImageBitmap(bitmap);
         });
         addButton("停止服务", 2, v -> {
             stopServer();
@@ -82,6 +88,8 @@ public class LocalServerFG extends BaseOLFragment {
     private static final int REQUEST_PERMISSION_CODE = 100;
     private FileServer fileServer;
 
+    private String localIpAddress;
+
     @Override
     protected boolean isBlackScreen() {
         return true;
@@ -93,11 +101,13 @@ public class LocalServerFG extends BaseOLFragment {
             fileServer = new FileServer(PORT, getActivity(), isOnlyDownload);
             fileServer.start();
             String ipAddress = getIPAddress(true); // 获取本地IP
-            toast("Server started at: http://" + ipAddress + ":" + PORT);
+            localIpAddress = "http://" + ipAddress + ":" + PORT;
+            toast("Server started at: " + localIpAddress);
             LogControl.d(TAG, "startServer: ipAddress=" + ipAddress);
-            mTextView.setText("浏览器输入: http://" + ipAddress + ":" + PORT +
+            mTextView.setText("浏览器输入: " + localIpAddress +
+                    "\n或者扫描二维码" +
                     "\n即可再相同网络下,下载手机的所有文件;" +
-                    "\n\n需要保证当前应用一直在前台!!!");
+                    "\n需要保证当前应用一直在前台!!!");
             mTextView.setKeepScreenOn(true);
         } catch (IOException e) {
             e.printStackTrace();

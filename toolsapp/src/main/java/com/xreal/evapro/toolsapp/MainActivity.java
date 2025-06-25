@@ -41,7 +41,7 @@ public class MainActivity extends BaseOLActivity {
 
         btnLocalServer = addButton("本地服务器功能-全文件", 1, v -> new LocalServerFG().openFragment(getFragmentManager()));
         // 仅下载的文件  好多无法显示
-        btnLocalServer2 = addButton("仅下载文件", 1, v -> new LocalServerFG(true).openFragment(getFragmentManager()));
+        btnLocalServer2 = addButton("仅下载文件", 1, v -> new LocalServerFG().setBaseParams("true").openFragment(getFragmentManager()));
         btnCamera = addButton("后置摄像头", 2, v -> new CameraPreviewFG().setBaseParams("0").openFragment(getFragmentManager()));
         btnCamera2 = addButton("前置摄像头", 2, v -> new CameraPreviewFG().setBaseParams("1").openFragment(getFragmentManager()));
         btnAudio = addButton("语音功能", v -> new AudioParentFG().openFragment(getFragmentManager()));
