@@ -2,7 +2,7 @@ package com.oldhigh.antiaddiction;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import com.xreal.evapro.toolsapp.util.LogControl;
+import android.util.Log;
 
 import com.oldhigh.antiaddiction.bean.AppInfo;
 import com.oldhigh.antiaddiction.util.HelpUtil;
@@ -44,7 +44,7 @@ public class DataManager {
         sharedPreferences = context.getSharedPreferences("appInfo", Context.MODE_PRIVATE);
 
         adNameSets = sharedPreferences.getStringSet("ads", new HashSet<>());
-        LogControl.d(TAG, "init: " + adNameSets.toString());
+        Log.d(TAG, "init: " + adNameSets.toString());
     }
 
 
