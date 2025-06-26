@@ -78,6 +78,7 @@ public class NotificationHelper {
     public void changeContent(String content) {
 
         if (notificationBuilder == null || mContext == null || mNotificationManager == null) {
+            show();
             return;
         }
 
