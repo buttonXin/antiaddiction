@@ -70,8 +70,8 @@ public class MainActivity extends BaseOLActivity {
         btn.setAllCaps(false);
         btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         btn.setAllCaps(false);
-        btn.setBackgroundResource(android.R.drawable.dialog_holo_light_frame);
-        int padding = DensityUtil.dip2px(15);
+        btn.setBackgroundResource(R.drawable.button_selector);
+        int padding = DensityUtil.dip2px(10);
         btn.setPadding(padding, padding, padding, padding);
         btn.setOnClickListener(v -> {
             new HomeConfigFg().openFragment(getFragmentManager()).setOnDestroyListener(this::showHide);

@@ -33,6 +33,12 @@ public class NotificationService extends Service {
     }
 
     @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        NotificationHelper.getInstance().changeContent(SPUtils.getInstance().getString(KEY_NOTE_CONTENT));
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         Log.e(TAG, "onDestroy: ");

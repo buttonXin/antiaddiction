@@ -233,8 +233,8 @@ public abstract class BaseOLFragment extends Fragment {
         button.setText(name);
         button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         button.setAllCaps(false);
-        button.setBackgroundResource(android.R.drawable.dialog_holo_light_frame);
-        int padding = DensityUtil.dip2px(15);
+        button.setBackgroundResource(R.drawable.button_selector);
+        int padding = DensityUtil.dip2px(10);
         button.setPadding(padding, padding, padding, padding);
         if (listener != null) {
             button.setOnClickListener(v -> {
@@ -254,8 +254,8 @@ public abstract class BaseOLFragment extends Fragment {
         button.setText(name);
         button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         button.setAllCaps(false);
-        button.setBackgroundResource(android.R.drawable.dialog_holo_light_frame);
-        int padding = DensityUtil.dip2px(15);
+        button.setBackgroundResource(R.drawable.button_selector);
+        int padding = DensityUtil.dip2px(10);
         button.setPadding(padding, padding, padding, padding);
         if (listener != null) {
             button.setOnClickListener(v -> {
