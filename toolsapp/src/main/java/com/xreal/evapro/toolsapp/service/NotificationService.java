@@ -7,6 +7,7 @@ import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.xreal.evapro.toolsapp.util.NotificationHelper;
@@ -34,7 +35,13 @@ public class NotificationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        NotificationHelper.getInstance().changeContent(SPUtils.getInstance().getString(KEY_NOTE_CONTENT));
+        final String hideInfo = intent.getStringExtra(NotificationHelper.HIDE_INFO);
+        Log.e(TAG, "onStartCommand: " + hideInfo);
+        if (TextUtils.isEmpty(hideInfo)) {
+            NotificationHelper.getInstance().changeContent(SPUtils.getInstance().getString(KEY_NOTE_CONTENT));
+        } else if (hideInfo.equals(NotificationHelper.HIDE_INFO)) {
+            NotificationHelper.getInstance().changeContent(hideInfo);
+        }
         return super.onStartCommand(intent, flags, startId);
     }
 

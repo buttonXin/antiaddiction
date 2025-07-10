@@ -47,6 +47,7 @@
         <activity
             android:name=".note.HideAct"
             android:exported="true"
+            android:launchMode="singleInstance"
             android:theme="@style/Theme.Transparent" />
 
         <service

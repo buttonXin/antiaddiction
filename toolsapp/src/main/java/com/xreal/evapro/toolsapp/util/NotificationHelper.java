@@ -1,5 +1,6 @@
 package com.xreal.evapro.toolsapp.util;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -27,7 +28,7 @@ public class NotificationHelper {
     private Notification.Builder notificationBuilder;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
-    public static final int DELAY_TIME = 20 * 1000;
+    public static final int DELAY_TIME = 10 * 1000;
     public static final String HIDE_INFO = "hide";
     private final Runnable mDelayRunnable = () -> changeContent(HIDE_INFO);
 
@@ -102,7 +103,8 @@ public class NotificationHelper {
                     mContext, 0, new Intent(mContext, NoteAct.class),
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             notificationBuilder.setContentIntent(pendingIntent);
-            mHandler.postDelayed(mDelayRunnable, DELAY_TIME);
+//            mHandler.postDelayed(mDelayRunnable, DELAY_TIME);
+            startCountdownWithAlarm(mContext, DELAY_TIME);
         }
         // 更新通知内容
         notificationBuilder.setContentTitle(content);
@@ -130,6 +132,18 @@ public class NotificationHelper {
 
     public void hide() {
         App.getInstance().stopService(new Intent(App.getInstance(), NotificationService.class));
+    }
+
+
+    public void startCountdownWithAlarm(Context context, long delayMillis) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, NotificationService.class);
+        intent.putExtra(HIDE_INFO, HIDE_INFO);
+        PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        alarmManager.cancel(pendingIntent);
+        alarmManager.set(AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + delayMillis, pendingIntent);
     }
 
 
