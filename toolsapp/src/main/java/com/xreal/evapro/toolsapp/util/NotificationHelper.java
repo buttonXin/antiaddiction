@@ -6,20 +6,30 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.xreal.evapro.toolsapp.App;
 import com.xreal.evapro.toolsapp.R;
+import com.xreal.evapro.toolsapp.note.HideAct;
 import com.xreal.evapro.toolsapp.note.NoteAct;
 import com.xreal.evapro.toolsapp.service.NotificationService;
 
 
 public class NotificationHelper {
+
+    private static final String TAG = NotificationHelper.class.getSimpleName();
     private static final String CHANNEL_ID = "channel_id";
 
     private volatile static NotificationHelper sInstance = null;
     private Context mContext; // 添加Context成员变量
     private NotificationManager mNotificationManager; // 添加NotificationManager成员变量
     private Notification.Builder notificationBuilder;
+
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
+    public static final int DELAY_TIME = 20 * 1000;
+    public static final String HIDE_INFO = "hide";
+    private final Runnable mDelayRunnable = () -> changeContent(HIDE_INFO);
 
     private NotificationHelper() {
     }
@@ -51,10 +61,8 @@ public class NotificationHelper {
         mNotificationManager.createNotificationChannel(channel);
 
         // 🔹 创建 PendingIntent 触发 BroadcastReceiver
-        Intent broadcastIntent = new Intent(context, NoteAct.class);
-
         PendingIntent pendingIntent = PendingIntent.getActivity(
-                context, 0, broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                context, 0, new Intent(context, NoteAct.class), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         // 🔔 **构建通知**
 
@@ -82,6 +90,20 @@ public class NotificationHelper {
             return;
         }
 
+        // hide时,点击显示内容
+        if (content.equals(HIDE_INFO)) {
+            PendingIntent pendingIntent = PendingIntent.getActivity(
+                    mContext, 0, new Intent(mContext, HideAct.class),
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            notificationBuilder.setContentIntent(pendingIntent);
+        } else {
+            mHandler.removeCallbacks(mDelayRunnable);
+            PendingIntent pendingIntent = PendingIntent.getActivity(
+                    mContext, 0, new Intent(mContext, NoteAct.class),
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            notificationBuilder.setContentIntent(pendingIntent);
+            mHandler.postDelayed(mDelayRunnable, DELAY_TIME);
+        }
         // 更新通知内容
         notificationBuilder.setContentTitle(content);
 

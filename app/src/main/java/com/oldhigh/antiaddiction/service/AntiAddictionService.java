@@ -3,7 +3,8 @@ package com.oldhigh.antiaddiction.service;
 import android.accessibilityservice.AccessibilityService;
 import android.content.pm.PackageManager;
 import android.text.TextUtils;
-import com.xreal.evapro.toolsapp.util.LogControl;
+
+import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
@@ -50,7 +51,7 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
-        LogControl.d(TAG, "onServiceConnected: ");
+        Log.d(TAG, "onServiceConnected: ");
         packageManager = getPackageManager();
         stringSet = DataManager.get().getAppNames();
 
@@ -108,7 +109,7 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
             }
 
 
-            LogControl.d(TAG, "onAccessibilityEvent: " + packageName);
+            Log.d(TAG, "onAccessibilityEvent: " + packageName);
 
             timerPackage.cancel();
             timerToast.cancel();

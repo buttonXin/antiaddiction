@@ -41,8 +41,13 @@
         </activity>
         <activity
             android:name=".note.NoteAct"
-            android:launchMode="singleTask"
-            android:exported="true" />
+            android:exported="true"
+            android:launchMode="singleTask" />
+
+        <activity
+            android:name=".note.HideAct"
+            android:exported="true"
+            android:theme="@style/Theme.Transparent" />
 
         <service
             android:name=".service.NotificationService"
