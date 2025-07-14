@@ -42,7 +42,7 @@
         <activity
             android:name=".note.NoteAct"
             android:exported="true"
-            android:launchMode="singleTask" />
+            android:launchMode="singleInstance" />
 
         <activity
             android:name=".note.HideAct"
