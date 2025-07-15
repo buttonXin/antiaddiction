@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.Gravity;
 import android.view.View;
@@ -78,7 +79,7 @@ public class WebITHomeFG extends BaseOLFragment {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 0, DensityUtil.dip2px(30));
         params.weight = 1;
-        params.bottomMargin = DensityUtil.dip2px(10);
+        params.bottomMargin = DensityUtil.dip2px(40);
         mLlTV.addView(view, params);
         view.setText(text);
         view.setGravity(Gravity.CENTER);
@@ -154,13 +155,11 @@ public class WebITHomeFG extends BaseOLFragment {
 
     private void openCamera() {
         final int cameraPermission = mActivity.checkSelfPermission(Manifest.permission.CAMERA);
-        final int sdcardPermission = mActivity.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        LogControl.d("cameraPermission=", cameraPermission, "sdcardPermission=", sdcardPermission);
+        LogControl.d("cameraPermission=", cameraPermission);
         if (cameraPermission != PackageManager.PERMISSION_GRANTED) {
             mActivity.requestPermissions(new String[]{Manifest.permission.CAMERA}, 101);
             return;
         }
-
 
         try {
             final int numberOfCameras = Camera.getNumberOfCameras();
@@ -169,7 +168,7 @@ public class WebITHomeFG extends BaseOLFragment {
             camera = Camera.open(mCameraId); // 打开后置摄像头
             surfaceTexture = new SurfaceTexture(1024);
             final Camera.Parameters parameters = camera.getParameters();
-            parameters.setPreviewSize(1920, 1080);
+//            parameters.setPreviewSize(1920, 1080);
             parameters.setRotation(90);
             camera.setParameters(parameters);
             camera.setPreviewTexture(surfaceTexture);
@@ -197,6 +196,7 @@ public class WebITHomeFG extends BaseOLFragment {
     private void takePicture() {
         LogControl.d("camera", camera);
         if (camera != null) {
+
             camera.takePicture(null, null, new Camera.PictureCallback() {
                 @Override
                 public void onPictureTaken(byte[] data, Camera camera) {
@@ -209,24 +209,17 @@ public class WebITHomeFG extends BaseOLFragment {
 
     private void saveImage(byte[] data) {
         try {
-//            File pictureFile = getOutputMediaFile();
-//            if (pictureFile == null) {
-//                LogControl.d(TAG, "Error creating media file, check storage permissions.");
-//                return;
-//            }
-//            FileOutputStream fos = new FileOutputStream(pictureFile);
-//            fos.write(data);
-//            fos.close();
-
             // 将图片插入 MediaStore，以便在相册中显示
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
 
             ContentValues values = new ContentValues();
             values.put(MediaStore.Images.Media.DISPLAY_NAME, "IMG_" + timeStamp + ".jpg");
+//            values.put(MediaStore.Images.Media.DISPLAY_NAME, pictureFile.getName());
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
             values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis());
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
 //            values.put(MediaStore.Images.Media.DATA, pictureFile.getAbsolutePath());
-            values.put(MediaStore.Images.Media.DATA, data);
+//            values.put(MediaStore.Images.Media.DATA, data);
 
             ContentResolver contentResolver = mActivity.getContentResolver();
             Uri uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
@@ -235,6 +228,7 @@ public class WebITHomeFG extends BaseOLFragment {
                 try (OutputStream output = contentResolver.openOutputStream(uri)) {
                     output.write(data);
                     toast("success");
+//                    pictureFile.delete();
                 } catch (IOException e) {
                     e.printStackTrace();
                     toast("failed");
@@ -246,7 +240,7 @@ public class WebITHomeFG extends BaseOLFragment {
     }
 
     private File getOutputMediaFile() {
-        File mediaStorageDir = new File(mActivity.getExternalFilesDir(null), "my_camera_file");
+        File mediaStorageDir = new File(mActivity.getCacheDir(), "my_camera_file");
         if (!mediaStorageDir.exists()) {
             if (!mediaStorageDir.mkdirs()) {
                 return null;
