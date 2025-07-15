@@ -7,7 +7,7 @@ android {
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.xreal.evapro.toolsapp"
+        applicationId "com.oldhigh.toolsapp"
         minSdk 29
         targetSdk 33
         versionCode 11
