@@ -11,8 +11,10 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
+import com.xreal.evapro.toolsapp.MainActivity;
 import com.xreal.evapro.toolsapp.R;
 import com.xreal.evapro.toolsapp.base.BaseOLActivity;
+import com.xreal.evapro.toolsapp.camrea.WebITHomeFG;
 import com.xreal.evapro.toolsapp.util.LogControl;
 import com.xreal.evapro.toolsapp.util.NotificationHelper;
 import com.xreal.evapro.toolsapp.util.SPUtils;
@@ -23,9 +25,10 @@ public class NoteAct extends BaseOLActivity {
 
     private EditText mEditText;
 
+
     @Override
-    protected void addTitleBar(String text) {
-        super.addTitleBar("记录");
+    protected void addTitleBar(String text, View.OnClickListener listener) {
+        super.addTitleBar("记录", v -> startAct(MainActivity.class));
     }
 
     @Override
@@ -39,6 +42,7 @@ public class NoteAct extends BaseOLActivity {
             NotificationHelper.getInstance().hide();
             hideInputMethod();
         });
+        addButton("IT之家", 1, v -> new WebITHomeFG().setBaseParams("0").openFragment(getFragmentManager()));
 
         final String noteContent = SPUtils.getInstance().getString(KEY_NOTE_CONTENT);
 

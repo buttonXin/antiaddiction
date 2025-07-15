@@ -112,6 +112,10 @@ public abstract class BaseOLActivity extends Activity {
     }
 
     protected void addTitleBar(String text) {
+        addTitleBar(text, null);
+    }
+
+    protected void addTitleBar(String text, View.OnClickListener listener) {
 
         final TextView view = new TextView(this);
         final LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
@@ -132,11 +136,18 @@ public abstract class BaseOLActivity extends Activity {
             viewLine.setBackgroundColor(Color.parseColor("#63999999"));
             llContent.addView(viewLine);
         }
+        if (listener != null) {
+            view.setOnClickListener(listener);
+        } else {
+            view.setOnClickListener(v -> finish());
+        }
     }
 
 
     public <T extends Activity> void startAct(Class<T> cls) {
-        startActivity(new Intent(getApplicationContext(), cls));
+        final Intent intent = new Intent(getApplicationContext(), cls);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
     }
 
     public Button addButton(String name, View.OnClickListener listener) {
