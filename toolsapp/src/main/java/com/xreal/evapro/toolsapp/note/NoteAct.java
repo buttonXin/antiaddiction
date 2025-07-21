@@ -1,5 +1,6 @@
 package com.xreal.evapro.toolsapp.note;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Color;
 import android.text.Editable;
@@ -9,6 +10,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.WebView;
 import android.widget.EditText;
 
 import com.xreal.evapro.toolsapp.MainActivity;
@@ -102,4 +104,21 @@ public class NoteAct extends BaseOLActivity {
             imm.hideSoftInputFromWindow(mEditText.getWindowToken(), 0);
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        Fragment currentFragment = getFragmentManager().findFragmentByTag(WebITHomeFG.class.getSimpleName());
+        LogControl.d("currentFragment:" + currentFragment);
+        if (currentFragment instanceof WebITHomeFG) {
+            WebView webView = ((WebITHomeFG) currentFragment).getWebView();
+            if (webView != null && webView.canGoBack()) {
+                webView.goBack(); // 返回 WebView 的上一页
+            } else {
+                super.onBackPressed(); // 如果无法返回上一页，则关闭当前 Activity
+            }
+        } else {
+            super.onBackPressed(); // 如果不是 WebITHomeFG，则默认处理返回键
+        }
+    }
+
 }

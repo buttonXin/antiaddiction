@@ -38,6 +38,7 @@ public class WebITHomeFG extends BaseOLFragment {
 
     private int mCameraId;
     private LinearLayout mLlTV;
+    private WebView mWebView;
 
     public WebITHomeFG() {
     }
@@ -87,12 +88,16 @@ public class WebITHomeFG extends BaseOLFragment {
 
     }
 
+    public WebView getWebView() {
+        return mWebView;
+    }
+
     private void initWebView() {
-        final WebView webView = new WebView(mActivity);
-        addFullscreenView(webView);
-        webView.setBackgroundColor(Color.BLACK);
+        mWebView = new WebView(mActivity);
+        addFullscreenView(mWebView);
+        mWebView.setBackgroundColor(Color.BLACK);
 //声明WebSettings子类
-        WebSettings webSettings = webView.getSettings();
+        WebSettings webSettings = mWebView.getSettings();
 
         WebView.setWebContentsDebuggingEnabled(true);
 //设置自适应屏幕，两者合用
@@ -130,8 +135,8 @@ public class WebITHomeFG extends BaseOLFragment {
         webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
 //        webSettings.setUserAgentString("PC");
-        webView.loadUrl(itURL);
-        webView.setWebViewClient(new WebViewClient() {
+        mWebView.loadUrl(itURL);
+        mWebView.setWebViewClient(new WebViewClient() {
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
