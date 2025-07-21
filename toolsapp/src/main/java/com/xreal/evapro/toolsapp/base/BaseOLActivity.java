@@ -1,6 +1,7 @@
 package com.xreal.evapro.toolsapp.base;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -12,9 +13,11 @@ import android.text.TextUtils;
 import android.util.Size;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -386,6 +389,8 @@ public abstract class BaseOLActivity extends Activity {
 
     private void addLlView(View view, LinearLayout.LayoutParams params) {
         params.bottomMargin = getBottomMargin();
+        params.leftMargin = getBottomMargin();
+        params.rightMargin = getBottomMargin();
         view.setLayoutParams(params);
         llContent.addView(view);
     }
@@ -432,6 +437,40 @@ public abstract class BaseOLActivity extends Activity {
     protected void onResume() {
         super.onResume();
         LogControl.d(TAG, "onResume: ");
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            View view = getCurrentFocus();
+            if (isShouldHideInput(view, ev)) {
+                hideInputMethod(view);
+            }
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    // 判断是否需要隐藏软键盘
+    private boolean isShouldHideInput(View view, MotionEvent event) {
+        if (view instanceof EditText) {
+            int[] leftTop = new int[2];
+            view.getLocationInWindow(leftTop);
+            int left = leftTop[0];
+            int top = leftTop[1];
+            int bottom = top + view.getHeight();
+            int right = left + view.getWidth();
+            return !(event.getX() > left && event.getX() < right
+                    && event.getY() > top && event.getY() < bottom);
+        }
+        return false;
+    }
+
+    // 隐藏软键盘方法
+    private void hideInputMethod(View view) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null && view != null) {
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 }
 

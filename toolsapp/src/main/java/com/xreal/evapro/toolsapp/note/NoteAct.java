@@ -24,8 +24,8 @@ import com.xreal.evapro.toolsapp.util.SPUtils;
 public class NoteAct extends BaseOLActivity {
 
     public static final String KEY_NOTE_CONTENT = "KEY_NOTE_CONTENT";
+    public static final String KEY_NOTE_CONTENT_2 = "KEY_NOTE_CONTENT_2";
 
-    private EditText mEditText;
 
 
     @Override
@@ -37,31 +37,36 @@ public class NoteAct extends BaseOLActivity {
     public void initData() {
         addButton("更新通知", 1, v -> {
             NotificationHelper.getInstance().show();
-            // 隐藏输入法
-            hideInputMethod();
         });
         addButton("停止通知", 1, v -> {
             NotificationHelper.getInstance().hide();
-            hideInputMethod();
         });
         addButton("IT之家", 1, v -> new WebITHomeFG().setBaseParams("0").openFragment(getFragmentManager()));
 
+
+        initNotificationET();
+        addLine();
+        initNoteET();
+
+
+    }
+
+
+    private void initNotificationET() {
+        EditText editText = addEditText("输入内容");
+        editText.setHint("输入内容");
+        editText.setLines(5);
+        editText.setTextColor(Color.BLACK);
+        editText.setBackgroundColor(Color.TRANSPARENT);
+        editText.setTextCursorDrawable(R.drawable.edit_text_cursor);
+        editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+
         final String noteContent = SPUtils.getInstance().getString(KEY_NOTE_CONTENT);
-
-        mEditText = addEditText("输入内容");
-        mEditText.setHint("输入内容");
-        mEditText.setLines(5);
-        mEditText.setTextColor(Color.BLACK);
-        mEditText.setBackgroundColor(Color.TRANSPARENT);
-        mEditText.setTextCursorDrawable(R.drawable.edit_text_cursor);
-        mEditText.setImeOptions(EditorInfo.IME_ACTION_DONE);
-        mEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-
-
         if (!TextUtils.isEmpty(noteContent)) {
-            mEditText.setText(noteContent);
+            editText.setText(noteContent);
         }
-        mEditText.addTextChangedListener(new TextWatcher() {
+        editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -80,28 +85,78 @@ public class NoteAct extends BaseOLActivity {
         });
 
         // 监听键盘的完成事件
-        mEditText.setOnEditorActionListener((v, actionId, event) -> {
+        editText.setOnEditorActionListener((v, actionId, event) -> {
             LogControl.d("actionId:" + actionId);
             if (actionId == EditorInfo.IME_ACTION_DONE
                     || actionId == 0) {
 
-                final String string = mEditText.getText().toString();
+                final String string = editText.getText().toString();
                 LogControl.d("string:" + string);
                 SPUtils.getInstance().put(KEY_NOTE_CONTENT, string.trim());
+                hideInputMethod(editText);
                 NotificationHelper.getInstance().show();
-                hideInputMethod();
                 return false;
             }
             return false;
         });
 
-
     }
 
-    private void hideInputMethod() {
+    /**
+     * 其他内容
+     */
+    private void initNoteET() {
+        EditText editText = addEditText("输入内容");
+        editText.setHint("输入内容");
+        editText.setLines(5);
+        editText.setTextColor(Color.BLACK);
+        editText.setBackgroundColor(Color.TRANSPARENT);
+        editText.setTextCursorDrawable(R.drawable.edit_text_cursor);
+        editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+
+        final String noteContent = SPUtils.getInstance().getString(KEY_NOTE_CONTENT_2);
+        if (!TextUtils.isEmpty(noteContent)) {
+            editText.setText(noteContent);
+        }
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                SPUtils.getInstance().put(KEY_NOTE_CONTENT_2, s.toString().trim());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        // 监听键盘的完成事件
+        editText.setOnEditorActionListener((v, actionId, event) -> {
+            LogControl.d("actionId:" + actionId);
+            if (actionId == EditorInfo.IME_ACTION_DONE
+                    || actionId == 0) {
+
+                final String string = editText.getText().toString();
+                LogControl.d("string:" + string);
+                SPUtils.getInstance().put(KEY_NOTE_CONTENT_2, string.trim());
+                hideInputMethod(editText);
+                return false;
+            }
+            return false;
+        });
+    }
+
+    private void hideInputMethod(EditText editText) {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm != null) {
-            imm.hideSoftInputFromWindow(mEditText.getWindowToken(), 0);
+            imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
         }
     }
 

@@ -13,7 +13,6 @@ import android.widget.RemoteViews;
 
 import com.xreal.evapro.toolsapp.App;
 import com.xreal.evapro.toolsapp.R;
-import com.xreal.evapro.toolsapp.note.HideAct;
 import com.xreal.evapro.toolsapp.note.NoteAct;
 import com.xreal.evapro.toolsapp.service.NotificationService;
 
@@ -34,6 +33,8 @@ public class NotificationHelper {
     private final Runnable mDelayRunnable = () -> changeContent(HIDE_INFO);
     private RemoteViews mBigView;
     private RemoteViews mSmallView;
+
+    public static boolean mIsShowing = false;
 
     private NotificationHelper() {
     }
@@ -74,11 +75,13 @@ public class NotificationHelper {
         mSmallView.setTextViewText(R.id.notification_title, content);
 
 
+        mSmallView.setOnClickPendingIntent(R.id.notification_title_hide, getPendingIntent(context));
+
         Notification.Builder builder = new Notification.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher_round)  // 通知图标
 //                .setContentTitle("标题")  // 标题
                 .setCustomContentView(mSmallView)
-                .setCustomBigContentView(mBigView)
+//                .setCustomBigContentView(mBigView)
 //                .setContentText(content)  // 内容
                 .setAutoCancel(true)  // 点击后自动取消通知
                 .setPriority(Notification.PRIORITY_LOW)  // 设置通知优先级为最低
@@ -87,6 +90,15 @@ public class NotificationHelper {
 
         // 发送通知
         return builder.build();
+    }
+
+    private PendingIntent getPendingIntent(Context context) {
+        Intent intent = new Intent(context, NotificationService.class);
+        intent.putExtra(HIDE_INFO, HIDE_INFO);
+
+        return PendingIntent.getService(mContext, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
     }
 
     /**
@@ -102,20 +114,11 @@ public class NotificationHelper {
 
 
         // hide时,点击显示内容
-//        if (content.equals(HIDE_INFO)) {
-//            PendingIntent pendingIntent = PendingIntent.getActivity(
-//                    mContext, 0, new Intent(mContext, HideAct.class),
-//                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-//            notificationBuilder.setContentIntent(pendingIntent);
-//        } else {
-//            mHandler.removeCallbacks(mDelayRunnable);
-//            PendingIntent pendingIntent = PendingIntent.getActivity(
-//                    mContext, 0, new Intent(mContext, NoteAct.class),
-//                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-//            notificationBuilder.setContentIntent(pendingIntent);
-////            mHandler.postDelayed(mDelayRunnable, DELAY_TIME);
-//            startCountdownWithAlarm(mContext, DELAY_TIME);
-//        }
+        if (content.equals(HIDE_INFO)) {
+            mSmallView.setTextViewText(R.id.notification_title_hide, "show");
+        } else {
+            mSmallView.setTextViewText(R.id.notification_title_hide, "hide");
+        }
         // 更新通知内容
         mSmallView.setTextViewText(R.id.notification_title, content);
         notificationBuilder.setCustomContentView(mSmallView);
