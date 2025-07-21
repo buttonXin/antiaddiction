@@ -225,38 +225,6 @@ public class WebITHomeFG extends BaseOLFragment {
         }
     }
 
-    private void saveImage(byte[] data) {
-        try {
-            // 将图片插入 MediaStore，以便在相册中显示
-            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.DISPLAY_NAME, "IMG_" + timeStamp + ".jpg");
-//            values.put(MediaStore.Images.Media.DISPLAY_NAME, pictureFile.getName());
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-            values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis());
-            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
-//            values.put(MediaStore.Images.Media.DATA, pictureFile.getAbsolutePath());
-//            values.put(MediaStore.Images.Media.DATA, data);
-
-            ContentResolver contentResolver = mActivity.getContentResolver();
-            Uri uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-
-            if (uri != null) {
-                try (OutputStream output = contentResolver.openOutputStream(uri)) {
-                    output.write(data);
-                    toast("success");
-//                    pictureFile.delete();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    toast("failed");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     private void saveImageToCache(byte[] data) {
         try {
             File pictureFile = getOutputMediaFile();

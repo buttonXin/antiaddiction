@@ -56,13 +56,6 @@
             android:name=".service.NotificationService"
             android:exported="true" />
 
-        <!--图片分享使用-->
-        <provider
-            android:name=".camrea.MyFileProvider"
-            android:authorities="com.oldhigh.fileprovider"
-            android:exported="false" />
-
-
     </application>
 
 </manifest>

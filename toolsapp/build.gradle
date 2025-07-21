@@ -10,8 +10,8 @@ android {
         applicationId "com.oldhigh.toolsapp"
         minSdk 29
         targetSdk 33
-        versionCode 13
-        versionName "1.5.6"
+        versionCode 14
+        versionName "1.5.7"
         archivesBaseName = "toosapp-" + defaultConfig.versionName + '-' + defaultConfig.versionCode + '-' + (new Date().format("yyyy-MMdd-HHmm"))
         buildConfigField 'String', 'impl_info', "\"$defaultConfig.versionName-$defaultConfig.versionCode-${(new Date().format("yyyy-MMdd-HHmm"))}\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
