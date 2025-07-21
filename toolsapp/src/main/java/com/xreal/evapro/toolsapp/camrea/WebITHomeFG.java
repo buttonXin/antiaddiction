@@ -26,6 +26,7 @@ import com.xreal.evapro.toolsapp.util.DensityUtil;
 import com.xreal.evapro.toolsapp.util.LogControl;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
@@ -64,7 +65,11 @@ public class WebITHomeFG extends BaseOLFragment {
 
         addBottomTV("1", v -> openCamera());
         addBottomTV("2", v -> takePicture());
-        addBottomTV("3", v -> releaseCamera());
+//        addBottomTV("3", v -> releaseCamera());
+        addBottomTV("4", v -> {
+            closeFragment();
+            new CacheImgFG().openFragment(getFragmentManager());
+        });
 
     }
 
@@ -158,6 +163,14 @@ public class WebITHomeFG extends BaseOLFragment {
         });
     }
 
+    private void releaseWebView() {
+        if (mWebView != null) {
+            mWebView.removeAllViews();
+            mWebView.destroy();
+            mWebView = null;
+        }
+    }
+
     private void openCamera() {
         final int cameraPermission = mActivity.checkSelfPermission(Manifest.permission.CAMERA);
         LogControl.d("cameraPermission=", cameraPermission);
@@ -205,7 +218,7 @@ public class WebITHomeFG extends BaseOLFragment {
             camera.takePicture(null, null, new Camera.PictureCallback() {
                 @Override
                 public void onPictureTaken(byte[] data, Camera camera) {
-                    saveImage(data);
+                    saveImageToCache(data);
                     camera.startPreview(); // 拍照后继续预览
                 }
             });
@@ -244,8 +257,26 @@ public class WebITHomeFG extends BaseOLFragment {
         }
     }
 
+    private void saveImageToCache(byte[] data) {
+        try {
+            File pictureFile = getOutputMediaFile();
+            if (pictureFile == null) {
+                LogControl.d(TAG, "Error creating media file, check storage permissions.");
+                return;
+            }
+            FileOutputStream fos = new FileOutputStream(pictureFile);
+            fos.write(data);
+            fos.close();
+            toast("suc");
+        } catch (Exception e) {
+            toast("failed");
+        }
+
+    }
+
+
     private File getOutputMediaFile() {
-        File mediaStorageDir = new File(mActivity.getCacheDir(), "my_camera_file");
+        File mediaStorageDir = new File(mActivity.getExternalCacheDir(), "my_camera_file");
         if (!mediaStorageDir.exists()) {
             if (!mediaStorageDir.mkdirs()) {
                 return null;
@@ -260,5 +291,11 @@ public class WebITHomeFG extends BaseOLFragment {
     public void onPause() {
         super.onPause();
         releaseCamera();
+    }
+
+    @Override
+    public void closeFragment() {
+        super.closeFragment();
+        releaseWebView();
     }
 }

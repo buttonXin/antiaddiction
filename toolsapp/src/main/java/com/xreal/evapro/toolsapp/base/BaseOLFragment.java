@@ -122,8 +122,15 @@ public abstract class BaseOLFragment extends Fragment {
     }
 
     public BaseOLFragment setBaseParams(String content) {
-        final Bundle args = new Bundle();
+        final Bundle args = getArguments() == null ? new Bundle() : getArguments();
         args.putString("content", content);
+        setArguments(args);
+        return this;
+    }
+
+    public BaseOLFragment setBaseParams2(String content) {
+        final Bundle args = getArguments() == null ? new Bundle() : getArguments();
+        args.putString("content2", content);
         setArguments(args);
         return this;
     }
@@ -132,6 +139,14 @@ public abstract class BaseOLFragment extends Fragment {
         final Bundle args = getArguments();
         if (args != null) {
             return args.getString("content");
+        }
+        return "";
+    }
+
+    protected String getContent2() {
+        final Bundle args = getArguments();
+        if (args != null) {
+            return args.getString("content2");
         }
         return "";
     }
@@ -211,6 +226,10 @@ public abstract class BaseOLFragment extends Fragment {
         fragmentManager.beginTransaction().add(android.R.id.content, this, this.getClass().getSimpleName())
                 .addToBackStack(null).commit();
         return this;
+    }
+
+    public void closeFragment() {
+        getFragmentManager().beginTransaction().remove(this).commit();
     }
 
     public BaseOLFragment setOnDestroyListener(OnDestroyListener listener) {
