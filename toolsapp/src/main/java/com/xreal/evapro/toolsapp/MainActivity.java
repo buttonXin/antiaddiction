@@ -18,6 +18,7 @@ import com.xreal.evapro.toolsapp.local_server.LocalServerFG;
 import com.xreal.evapro.toolsapp.magnifier.MagnifierShowFG;
 import com.xreal.evapro.toolsapp.note.NoteAct;
 import com.xreal.evapro.toolsapp.util.DensityUtil;
+import com.xreal.evapro.toolsapp.util.LogControl;
 import com.xreal.evapro.toolsapp.util.SPUtils;
 
 public class MainActivity extends BaseOLActivity {
@@ -38,6 +39,7 @@ public class MainActivity extends BaseOLActivity {
     public void initData() {
         addBottom();
 
+        LogControl.d(" CacheImgSingleFG initData");
         btnLocalServer = addButton("本地服务器功能-全文件", 1, v -> new LocalServerFG().openFragment(getFragmentManager()));
         // 仅下载的文件  好多无法显示
         btnLocalServer2 = addButton("仅下载文件", 1, v -> new LocalServerFG().setBaseParams("true").openFragment(getFragmentManager()));
@@ -85,4 +87,17 @@ public class MainActivity extends BaseOLActivity {
         addFullscreenView(btn);
 
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LogControl.d(TAG, "onPause: ");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LogControl.d(TAG, "onResume: ");
+    }
+
 }

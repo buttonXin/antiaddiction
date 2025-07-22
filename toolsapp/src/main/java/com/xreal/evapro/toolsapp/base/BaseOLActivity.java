@@ -51,11 +51,20 @@ public abstract class BaseOLActivity extends Activity {
 
     public abstract void initData();
 
+    private static final String PREV = "PREV";
+    private boolean hasPrevActivity = false;
+
+    public boolean hasPrevActivity() {
+        return hasPrevActivity;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         TAG = getClass().getSimpleName();
 
+        LogControl.d("onCreate", getClass().getSimpleName());
+        hasPrevActivity = !TextUtils.isEmpty(getIntent().getStringExtra(PREV));
         // 状态栏 通知栏颜色反转
 //        int statusFlag = -1;
 //        int navigationFlag = -1;
@@ -150,7 +159,9 @@ public abstract class BaseOLActivity extends Activity {
     public <T extends Activity> void startAct(Class<T> cls) {
         final Intent intent = new Intent(getApplicationContext(), cls);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(PREV, cls.getSimpleName());
         startActivity(intent);
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
     }
 
     public Button addButton(String name, View.OnClickListener listener) {
@@ -430,13 +441,13 @@ public abstract class BaseOLActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        LogControl.d(TAG, "onPause: ");
+        LogControl.d(TAG, "onPause: ", getClass().getSimpleName());
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        LogControl.d(TAG, "onResume: ");
+        LogControl.d(TAG, "onResume: ", getClass().getSimpleName());
     }
 
     @Override

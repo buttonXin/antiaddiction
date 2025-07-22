@@ -182,7 +182,12 @@ public class NoteAct extends BaseOLActivity {
             return;
         }
 
-        super.onBackPressed(); // 默认处理返回键
+        if (hasPrevActivity()) {
+            finish();
+        } else {
+            moveTaskToBack(true);
+            finish();
+        }
 
     }
 
