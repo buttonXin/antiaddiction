@@ -224,7 +224,7 @@ public abstract class BaseOLFragment extends Fragment {
      */
     public BaseOLFragment openFragment(FragmentManager fragmentManager) {
         fragmentManager.beginTransaction().add(android.R.id.content, this, this.getClass().getSimpleName())
-                .addToBackStack(null).commit();
+                .addToBackStack(this.getClass().getSimpleName()).commit();
         return this;
     }
 

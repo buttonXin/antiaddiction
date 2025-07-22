@@ -21,11 +21,12 @@ import com.xreal.evapro.toolsapp.util.LogControl;
 import com.xreal.evapro.toolsapp.util.NotificationHelper;
 import com.xreal.evapro.toolsapp.util.SPUtils;
 
+import java.util.List;
+
 public class NoteAct extends BaseOLActivity {
 
     public static final String KEY_NOTE_CONTENT = "KEY_NOTE_CONTENT";
     public static final String KEY_NOTE_CONTENT_2 = "KEY_NOTE_CONTENT_2";
-
 
 
     @Override
@@ -162,18 +163,27 @@ public class NoteAct extends BaseOLActivity {
 
     @Override
     public void onBackPressed() {
-        Fragment currentFragment = getFragmentManager().findFragmentByTag(WebITHomeFG.class.getSimpleName());
-        LogControl.d("currentFragment:" + currentFragment);
-        if (currentFragment instanceof WebITHomeFG) {
-            WebView webView = ((WebITHomeFG) currentFragment).getWebView();
-            if (webView != null && webView.canGoBack()) {
-                webView.goBack(); // 返回 WebView 的上一页
-            } else {
-                super.onBackPressed(); // 如果无法返回上一页，则关闭当前 Activity
+
+        final List<Fragment> fragments = getFragmentManager().getFragments();
+        final int size = fragments.size();
+        if (size > 0) {
+            final Fragment fragment = fragments.get(size - 1);
+            LogControl.d("current fragment " + fragment.getClass().getSimpleName());
+            if (fragment instanceof WebITHomeFG) {
+                WebView webView = ((WebITHomeFG) fragment).getWebView();
+                if (webView != null && webView.canGoBack()) {
+                    LogControl.d("goBack");
+                    webView.goBack(); // 返回 WebView 的上一页
+                    return;
+                }
             }
-        } else {
-            super.onBackPressed(); // 如果不是 WebITHomeFG，则默认处理返回键
+            LogControl.d("remove fragment " + fragment.getClass().getSimpleName());
+            getFragmentManager().beginTransaction().remove(fragment).commit();
+            return;
         }
+
+        super.onBackPressed(); // 默认处理返回键
+
     }
 
 }

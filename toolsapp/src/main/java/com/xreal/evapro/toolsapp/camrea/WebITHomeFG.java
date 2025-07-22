@@ -67,7 +67,7 @@ public class WebITHomeFG extends BaseOLFragment {
         addBottomTV("2", v -> takePicture());
 //        addBottomTV("3", v -> releaseCamera());
         addBottomTV("4", v -> {
-            closeFragment();
+//            closeFragment();
             new CacheImgFG().openFragment(getFragmentManager());
         });
 
@@ -85,7 +85,7 @@ public class WebITHomeFG extends BaseOLFragment {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 0, DensityUtil.dip2px(30));
         params.weight = 1;
-        params.bottomMargin = DensityUtil.dip2px(40);
+        params.bottomMargin = DensityUtil.dip2px(160);
         mLlTV.addView(view, params);
         view.setText(text);
         view.setGravity(Gravity.CENTER);
@@ -167,6 +167,7 @@ public class WebITHomeFG extends BaseOLFragment {
         if (mWebView != null) {
             mWebView.removeAllViews();
             mWebView.destroy();
+            mWebView.setVisibility(View.GONE);
             mWebView = null;
         }
     }
@@ -263,7 +264,7 @@ public class WebITHomeFG extends BaseOLFragment {
 
     @Override
     public void closeFragment() {
-        super.closeFragment();
         releaseWebView();
+        super.closeFragment();
     }
 }
