@@ -1,16 +1,11 @@
 package com.xreal.evapro.toolsapp.camrea;
 
 import android.Manifest;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
-import android.net.Uri;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.view.Gravity;
 import android.view.View;
 import android.webkit.WebResourceRequest;
@@ -27,8 +22,6 @@ import com.xreal.evapro.toolsapp.util.LogControl;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -78,16 +71,19 @@ public class WebITHomeFG extends BaseOLFragment {
         if (mLlTV == null) {
             mLlTV = new LinearLayout(mActivity);
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-            params.gravity = Gravity.BOTTOM;
+                    FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+            params.gravity = Gravity.BOTTOM | Gravity.END;
+            params.bottomMargin = DensityUtil.dip2px(160);
+            params.rightMargin = DensityUtil.dip2px(20);
             mFrameLayout.addView(mLlTV, params);
+            mLlTV.setOrientation(LinearLayout.VERTICAL);
         }
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                0, DensityUtil.dip2px(30));
-        params.weight = 1;
-        params.bottomMargin = DensityUtil.dip2px(160);
+                DensityUtil.dip2px(30), DensityUtil.dip2px(30));
+        params.bottomMargin = DensityUtil.dip2px(30);
         mLlTV.addView(view, params);
         view.setText(text);
+        view.setTextColor(Color.BLACK);
         view.setGravity(Gravity.CENTER);
         view.setOnClickListener(listener);
 
@@ -228,6 +224,9 @@ public class WebITHomeFG extends BaseOLFragment {
 
     private void saveImageToCache(byte[] data) {
         try {
+
+            long start = System.currentTimeMillis();
+            LogControl.d("start saveImageToCache", start);
             File pictureFile = getOutputMediaFile();
             if (pictureFile == null) {
                 LogControl.d(TAG, "Error creating media file, check storage permissions.");
@@ -236,7 +235,10 @@ public class WebITHomeFG extends BaseOLFragment {
             FileOutputStream fos = new FileOutputStream(pictureFile);
             fos.write(data);
             fos.close();
-            toast("suc");
+            LogControl.d("end saveImageToCache", System.currentTimeMillis() - start);
+            mLlTV.setBackgroundColor(Color.GRAY);
+            handler.postDelayed(() -> mLlTV.setBackgroundColor(Color.TRANSPARENT), 200);
+
         } catch (Exception e) {
             toast("failed");
         }
@@ -260,6 +262,17 @@ public class WebITHomeFG extends BaseOLFragment {
     public void onPause() {
         super.onPause();
         releaseCamera();
+        if (mWebView != null) {
+            mWebView.onPause();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mWebView != null) {
+            mWebView.onResume();
+        }
     }
 
     @Override
