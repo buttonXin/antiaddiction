@@ -1,21 +1,27 @@
 package com.xreal.evapro.toolsapp.camrea;
 
+import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.util.Size;
 import android.widget.ImageView;
 
 import com.xreal.evapro.toolsapp.base.BaseOLFragment;
+import com.xreal.evapro.toolsapp.util.LogControl;
+import com.xreal.evapro.toolsapp.util.SPUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 public class CacheImgFG extends BaseOLFragment {
     @Override
     public void initData() {
 
-        addButton("清理所有", v -> clearFile());
+        addButton("time", v -> clearFile());
 
         File mediaStorageDir = new File(mActivity.getExternalCacheDir(), "my_camera_file");
         if (!mediaStorageDir.exists()) {
@@ -84,6 +90,16 @@ public class CacheImgFG extends BaseOLFragment {
                 file.delete();
             }
         }
+        final Set<String> stringSet = SPUtils.getInstance().getStringSet("share_img");
+        LogControl.d("share_img", stringSet);
+        ContentResolver contentResolver = mActivity.getContentResolver();
+        for (String deleteUri : stringSet) {
+            // 使用 ContentResolver 删除 MediaStore 中的条目
+            int rowsAffected = contentResolver.delete(Uri.parse(deleteUri), null, null);
+            LogControl.d("rowsAffected", rowsAffected);
+        }
+
+        SPUtils.getInstance().put("share_img", new HashSet<>());
     }
 
 

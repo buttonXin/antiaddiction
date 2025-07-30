@@ -67,6 +67,7 @@ public class LocalServerFG extends BaseOLFragment {
         });
         addButton("停止服务", 2, v -> {
             stopServer();
+            mImageView.setVisibility(View.GONE);
             mTextView.setText("服务已经停止");
         });
 

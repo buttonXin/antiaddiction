@@ -11,10 +11,13 @@ import android.widget.ImageView;
 
 import com.xreal.evapro.toolsapp.base.BaseOLFragment;
 import com.xreal.evapro.toolsapp.util.LogControl;
+import com.xreal.evapro.toolsapp.util.SPUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 public class CacheImgSingleFG extends BaseOLFragment {
 
@@ -76,5 +79,9 @@ public class CacheImgSingleFG extends BaseOLFragment {
         shareIntent.setType("image/*"); // 设置分享类型为图片
         shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // 授予临时读取权限
         mActivity.startActivity(Intent.createChooser(shareIntent, "分享图片到")); // 弹出选择框
+
+        final Set<String> stringSet = SPUtils.getInstance().getStringSet("share_img");
+        stringSet.add(uri.toString());
+        SPUtils.getInstance().put("share_img", new HashSet<>(stringSet));
     }
 }

@@ -60,7 +60,7 @@ public class WebITHomeFG extends BaseOLFragment {
         addBottomTV("2", v -> takePicture());
 //        addBottomTV("3", v -> releaseCamera());
         addBottomTV("4", v -> {
-//            closeFragment();
+            releaseCamera();
             new CacheImgFG().openFragment(getFragmentManager());
         });
 
@@ -79,13 +79,17 @@ public class WebITHomeFG extends BaseOLFragment {
             mLlTV.setOrientation(LinearLayout.VERTICAL);
         }
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                DensityUtil.dip2px(30), DensityUtil.dip2px(30));
+                DensityUtil.dip2px(50), DensityUtil.dip2px(30));
         params.bottomMargin = DensityUtil.dip2px(30);
         mLlTV.addView(view, params);
         view.setText(text);
         view.setTextColor(Color.BLACK);
         view.setGravity(Gravity.CENTER);
-        view.setOnClickListener(listener);
+        view.setOnClickListener(v -> {
+            listener.onClick(v);
+            view.setTextColor(Color.WHITE);
+            handler.postDelayed(() -> view.setTextColor(Color.BLACK), 200);
+        });
 
     }
 
@@ -176,6 +180,11 @@ public class WebITHomeFG extends BaseOLFragment {
             return;
         }
 
+        if (camera != null) {
+            releaseCamera();
+            return;
+        }
+
         try {
             final int numberOfCameras = Camera.getNumberOfCameras();
             LogControl.d(TAG, "openCamera: numberOfCameras=" + numberOfCameras);
@@ -236,8 +245,7 @@ public class WebITHomeFG extends BaseOLFragment {
             fos.write(data);
             fos.close();
             LogControl.d("end saveImageToCache", System.currentTimeMillis() - start);
-            mLlTV.setBackgroundColor(Color.GRAY);
-            handler.postDelayed(() -> mLlTV.setBackgroundColor(Color.TRANSPARENT), 200);
+
 
         } catch (Exception e) {
             toast("failed");
