@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.util.Size;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import com.xreal.evapro.toolsapp.base.BaseOLFragment;
@@ -14,15 +15,24 @@ import com.xreal.evapro.toolsapp.util.SPUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 public class CacheImgFG extends BaseOLFragment {
+
+    private Button mTime;
+
     @Override
     public void initData() {
 
-        addButton("time", v -> clearFile());
+        mTime = addButton("time", v -> clearFile());
 
+        createImgView();
+    }
+
+    private void createImgView() {
         File mediaStorageDir = new File(mActivity.getExternalCacheDir(), "my_camera_file");
         if (!mediaStorageDir.exists()) {
             toast("not cache");
@@ -39,7 +49,8 @@ public class CacheImgFG extends BaseOLFragment {
             final File file = new File(mediaStorageDir, name);
             final BitmapDrawable bitmapDrawable = getBitmapDrawable(file);
 
-            ImageView view = addImage(bitmapDrawable, new Size(450, 800));
+            ImageView view = addImage(bitmapDrawable, new Size(180, 320));
+            view.setScaleType(ImageView.ScaleType.FIT_XY);
             view.setOnClickListener(v -> new CacheImgSingleFG().openFragment(getFragmentManager()).setBaseParams(file.getPath()));
 
         }
@@ -84,6 +95,8 @@ public class CacheImgFG extends BaseOLFragment {
     }
 
     private void clearFile() {
+        String curTime = new SimpleDateFormat("yyyy-MMdd_HHmm:ss").format(new java.util.Date());
+        mTime.setText(curTime);
         File mediaStorageDir = new File(mActivity.getExternalCacheDir(), "my_camera_file");
         if (mediaStorageDir.exists()) {
             for (File file : mediaStorageDir.listFiles()) {

@@ -32,7 +32,7 @@ public class CacheImgSingleFG extends BaseOLFragment {
                 mActivity.getResources(),
                 content);
         imageView.setImageDrawable(bitmapDrawable);
-        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
         addFullscreenView(imageView);
         imageView.setOnClickListener(v -> closeFragment());
         imageView.setOnLongClickListener(v -> {
@@ -49,21 +49,24 @@ public class CacheImgSingleFG extends BaseOLFragment {
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
             values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis());
             values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
-            values.put(MediaStore.Images.Media.DATA, pictureFile.getAbsolutePath());
+
 
             ContentResolver contentResolver = mActivity.getContentResolver();
             Uri uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
-            byte[] buffer = new byte[(int) pictureFile.length()];
-            //noinspection ResultOfMethodCallIgnored
-            java.io.FileInputStream fis = new FileInputStream(pictureFile);
-            fis.read(buffer);
-            fis.close();
             if (uri != null) {
-                OutputStream output = contentResolver.openOutputStream(uri);
-                output.write(buffer);
+                // 直接从文件复制到 MediaStore
+                try (FileInputStream fis = new FileInputStream(pictureFile);
+                     OutputStream output = contentResolver.openOutputStream(uri)) {
+
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = fis.read(buffer)) != -1) {
+                        output.write(buffer, 0, bytesRead);
+                    }
+                }
                 sharedImg(uri);
-                pictureFile.delete();
+//                pictureFile.delete();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -80,8 +83,12 @@ public class CacheImgSingleFG extends BaseOLFragment {
         shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); // 授予临时读取权限
         mActivity.startActivity(Intent.createChooser(shareIntent, "分享图片到")); // 弹出选择框
 
-        final Set<String> stringSet = SPUtils.getInstance().getStringSet("share_img");
-        stringSet.add(uri.toString());
-        SPUtils.getInstance().put("share_img", new HashSet<>(stringSet));
+        Set<String> stringSet = SPUtils.getInstance().getStringSet("share_img");
+        final HashSet<String> endSets = new HashSet<>();
+        endSets.add(uri.toString());
+        if (stringSet != null) {
+            endSets.addAll(stringSet);
+        }
+        SPUtils.getInstance().put("share_img", endSets);
     }
 }
