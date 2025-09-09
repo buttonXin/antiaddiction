@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 
 import com.oldhigh.antiaddiction.bean.EventClick;
 import com.oldhigh.antiaddiction.util.DeviceManagerUtil;
+import com.oldhigh.antiaddiction.util.SPUtils;
 import com.ven.assists.AssistsCore;
 import com.ven.assists.service.AssistsService;
 import com.ven.assists.stepper.Step;
@@ -40,6 +41,7 @@ public class DingDingAction extends StepImpl {
 
     @Override
     public void onImpl(@NonNull StepCollector stepCollector) {
+
 
         stepCollector.next(1, true, (step, continuation) -> {
 
@@ -72,7 +74,7 @@ public class DingDingAction extends StepImpl {
                 Log.e(TAG, " key =" + integer + "  " + eventClick);
 
                 if (eventClick.point == null) {
-                    AssistsCore.INSTANCE.findByText(eventClick.clickName).forEach(node -> {
+                    AssistsCore.INSTANCE.findByText(eventClick.clickName,null,null,null).forEach(node -> {
                         node.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
                         clickByNode(node);
                     });
@@ -110,12 +112,6 @@ public class DingDingAction extends StepImpl {
 
     public static boolean clickByNode(Point point) {
 
-//        Rect rect = new Rect();
-//        nodeInfo.getBoundsInScreen(rect);
-//        int x = rect.centerX();
-//        int y = rect.centerY();
-//        Log.e("acc_", "要点击的像素点在手机屏幕位置::" + rect.centerX() + " " + rect.centerY());
-//        Point point = new Point(x, y);
         GestureDescription.Builder builder = new GestureDescription.Builder();
         Path path = new Path();
         path.moveTo(point.x, point.y);

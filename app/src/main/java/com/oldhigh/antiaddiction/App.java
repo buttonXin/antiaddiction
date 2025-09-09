@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.hjq.toast.ToastStrategy;
 import com.hjq.toast.ToastUtils;
+import com.oldhigh.antiaddiction.activity.ActivityLifecycleHelper;
 
 public class App extends Application {
 
@@ -18,6 +19,7 @@ public class App extends Application {
         });
         DataManager.get().init(this);
 
+        ActivityLifecycleHelper.registerLifecycle(this);
     }
 
     public static App getInstance() {

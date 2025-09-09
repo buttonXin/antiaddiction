@@ -5,6 +5,7 @@ import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -19,8 +20,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.hjq.toast.ToastUtils;
 import com.oldhigh.antiaddiction.R;
 import com.oldhigh.antiaddiction.action.MiGuAction;
+import com.oldhigh.antiaddiction.action.ShoppingAction;
 import com.oldhigh.antiaddiction.receiver.AdminReceiver;
 import com.oldhigh.antiaddiction.service.AntiAddictionService;
+import com.oldhigh.antiaddiction.util.FloatPointHelper;
 import com.ven.assists.AssistsCore;
 import com.ven.assists.stepper.StepManager;
 
@@ -62,9 +65,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         viewChoose = addButton("选择应用", view -> {
-            AssistsCore.INSTANCE.getAllNodes().forEach(node -> {
-                Log.e(TAG, "initData: " + node.toString());
-            });
+            final FloatPointHelper floatPointHelper = new FloatPointHelper(this);
+            floatPointHelper.show();
         });
 
         viewSelected = addButton("查看应用", view -> {
@@ -97,14 +99,36 @@ public class MainActivity extends AppCompatActivity {
     private void checkService() {
 
 
-        if (!AssistsCore.INSTANCE.isAccessibilityServiceEnabled()) {// 判断服务是否开启
-            AssistsCore.INSTANCE.openAccessibilitySetting();
-            ;// 跳转到开启页面
-        } else {
-            isServiceStart = true;
-            ToastUtils.show("服务已开启，点击选择应用");
-            showButton();
+        // 监听通知权限
+        String enabledListeners = Settings.Secure.getString(
+                getContentResolver(),
+                "enabled_notification_listeners"
+        );
+        String packageName = getPackageName();
+        final boolean notifyPer = enabledListeners != null && enabledListeners.contains(packageName);
+        Log.e(TAG, "checkService: " + notifyPer);
+        if (!notifyPer) {
+            Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+            startActivity(intent);
+            return;
         }
+        // 判断无障碍服务是否开启
+        if (!AssistsCore.INSTANCE.isAccessibilityServiceEnabled()) {
+            AssistsCore.INSTANCE.openAccessibilitySetting();
+            return;
+        }
+
+        // 悬浮窗权限
+        if (!Settings.canDrawOverlays(this)) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, 1001);
+            return;
+        }
+
+        isServiceStart = true;
+        showButton();
+
     }
 
     private void showButton() {

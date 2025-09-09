@@ -52,7 +52,7 @@ public class MiGuAction extends StepImpl {
             return Step.Companion.get(3, MiGuAction.class, null, 10000);
         }).next(3, true, (step, continuation) -> {
             Log.e(TAG, "onImpl: 3 ");
-            AssistsCore.INSTANCE.findByText("国足").forEach(node -> {
+            AssistsCore.INSTANCE.findByText("国足",null,null,null).forEach(node -> {
                 node.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
             });
             return Step.Companion.get(4, MiGuAction.class, null, 10000);
