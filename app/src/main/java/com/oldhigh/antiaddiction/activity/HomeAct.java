@@ -3,19 +3,27 @@ package com.oldhigh.antiaddiction.activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.TextView;
 
-import com.oldhigh.antiaddiction.action.MiGuAction;
-import com.oldhigh.antiaddiction.action.ShoppingAction;
-import com.oldhigh.antiaddiction.feature.AddPointFg;
+import com.oldhigh.antiaddiction.R;
+import com.oldhigh.antiaddiction.feature.SpKey;
+import com.oldhigh.antiaddiction.feature.operate.PointFg;
+import com.oldhigh.antiaddiction.util.NotificationHelper;
+import com.oldhigh.antiaddiction.util.SPUtils;
 import com.ven.assists.AssistsCore;
-import com.ven.assists.stepper.StepManager;
 
 public class HomeAct extends BaseOLActivity {
 
+    @Override
+    protected void addTitleBar(String text) {
+        super.addTitleBar(getString(R.string.app_name));
+    }
     private TextView mTextView;
     private boolean isServiceStart = false;
+    private EditText mEditText;
 
     @Override
     public void initData() {
@@ -59,13 +67,21 @@ public class HomeAct extends BaseOLActivity {
 
     private void showView() {
 
-        addButton("开始", view -> {
-            StepManager.INSTANCE.execute(ShoppingAction.class, 1, 0, null, true);
+        addButton("查看操作组", view -> {
+            new PointFg().openFragment(getFragmentManager());
         });
-        addButton("记录自动化", view -> {
-           new AddPointFg()
-                .setBaseParams("记录自动化")
-                .openFragment(getFragmentManager());
+        final boolean aBoolean = SPUtils.getInstance().getBoolean(SpKey.KEY_Notification);
+        addSwitch("是否启动通知栏执行", aBoolean, (view, isChecked) -> {
+            SPUtils.getInstance().put(SpKey.KEY_Notification, isChecked);
+        });
+        mEditText = addEditText("输入操作组名称", 1);
+        addButton("测试通知栏执行", 1, view -> {
+            final String string = mEditText.getText().toString();
+            if (TextUtils.isEmpty(string)) {
+                toast("请输入内容");
+                return;
+            }
+            NotificationHelper.sendNotification(getApplicationContext(), string);
         });
     }
 }

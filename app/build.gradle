@@ -6,13 +6,13 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.oldhigh.antiaddiction"
+        applicationId "com.oldhigh.autoOperation"
         minSdk 24
-        targetSdk 31
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
-        archivesBaseName = "Antiaddiction-"+defaultConfig.versionName+ '-' + (new Date().format("yyyyMMddHHmm"))
+        archivesBaseName = "autoOperation-" + defaultConfig.versionName + '-' + (new Date().format("yyyyMMddHHmm"))
 
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

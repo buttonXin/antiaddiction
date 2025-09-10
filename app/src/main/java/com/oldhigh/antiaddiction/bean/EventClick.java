@@ -13,6 +13,10 @@ public class EventClick {
      */
     public String clickName;
     /**
+     * 包名
+     */
+    public String pkgName;
+    /**
      * 点击的坐标 xy
      */
     public Point point;

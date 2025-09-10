@@ -8,7 +8,6 @@ import android.graphics.Point;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
 import android.os.Build;
-import android.text.InputType;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -46,6 +45,7 @@ public class FloatPointHelper {
     private Point currentPoint = null;
     private View redDotView; // 添加红点视图
     private EditText mEditText,mEditTextTime;
+    private String mContent;
 
     public FloatPointHelper(Context context) {
         this.context = context;
@@ -172,7 +172,8 @@ public class FloatPointHelper {
         redDotParams.height = 30; // 红点大小
     }
 
-    public void show() {
+    public void show(String content) {
+        mContent = content;
         try {
             windowManager.addView(floatView, layoutParams);
         } catch (Exception e) {
@@ -252,7 +253,7 @@ public class FloatPointHelper {
 
             LogControl.d(" saveCoordinate: " +  " " + x + " " + y);
 
-            String string = SPUtils.getInstance().getString(SpKey.KEY_POINT);
+            String string = SPUtils.getInstance().getString(mContent);
             final List<EventClick> eventClicks;
             if (TextUtils.isEmpty(string)) {
                 eventClicks = new ArrayList<>();
@@ -263,7 +264,7 @@ public class FloatPointHelper {
             }
             eventClicks.add(new EventClick("", new Point(x, y)));
 
-            SPUtils.getInstance().put(SpKey.KEY_POINT, new Gson().toJson(eventClicks));
+            SPUtils.getInstance().put(mContent, new Gson().toJson(eventClicks));
 
             toggleRecording();
         }

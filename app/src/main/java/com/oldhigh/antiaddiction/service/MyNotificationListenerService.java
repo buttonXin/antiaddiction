@@ -6,9 +6,12 @@ import android.service.notification.StatusBarNotification;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.oldhigh.antiaddiction.action.DingDingAction;
-import com.oldhigh.antiaddiction.action.MiGuAction;
+import com.oldhigh.antiaddiction.action.OperationAction;
+import com.oldhigh.antiaddiction.feature.SpKey;
+import com.oldhigh.antiaddiction.util.SPUtils;
 import com.ven.assists.stepper.StepManager;
+
+import java.util.Set;
 
 
 public class MyNotificationListenerService extends NotificationListenerService {
@@ -39,18 +42,23 @@ public class MyNotificationListenerService extends NotificationListenerService {
         if (TextUtils.isEmpty(text)) {
             return;
         }
-        if (text.toString().equals("migu")) {
-            playAudio();
-        } if (text.toString().contains("打卡")) {
-            ddWorker();
+        final Set<String> stringSet = SPUtils.getInstance().getStringSet(SpKey.KEY_POINT_list);
+        if (stringSet != null) {
+            for (String s : stringSet) {
+                if (text.toString().contains(s)) {
+                    handlePoint(s);
+                }
+            }
         }
+
     }
 
-    private void playAudio() {
-        StepManager.INSTANCE.execute(MiGuAction.class, 1, 0, null, true);
-    }
-    private void ddWorker() {
-        StepManager.INSTANCE.execute(DingDingAction.class, 1, 0, null, true);
+    private void handlePoint(String s) {
+        final boolean aBoolean = SPUtils.getInstance().getBoolean(SpKey.KEY_Notification);
+        if (!aBoolean) {
+            return;
+        }
+        StepManager.INSTANCE.execute(OperationAction.class, 1, 100, s, true);
     }
 
     @Override

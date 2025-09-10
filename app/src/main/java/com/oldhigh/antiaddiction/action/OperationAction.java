@@ -11,8 +11,9 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.oldhigh.antiaddiction.bean.EventClick;
-import com.oldhigh.antiaddiction.feature.SpKey;
 import com.oldhigh.antiaddiction.util.LogControl;
 import com.oldhigh.antiaddiction.util.SPUtils;
 import com.ven.assists.service.AssistsService;
@@ -21,61 +22,62 @@ import com.ven.assists.stepper.StepCollector;
 import com.ven.assists.stepper.StepImpl;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * 商店打卡-tao bao
  */
-public class ShoppingAction extends StepImpl {
-    private static final String TAG = DingDingAction.class.getSimpleName();
+public class OperationAction extends StepImpl {
+    private static final String TAG = OperationAction.class.getSimpleName();
 
     private static final int delay = 3000;
 
     private Map<Integer, EventClick> sActionMap = new HashMap<>();
 
 
-    public ShoppingAction() {
-        final String string = SPUtils.getInstance().getString(SpKey.KEY_POINT);
-        LogControl.d("string = " + string);
-        final String[] split = string.split("\n");
-        for (int i = 0; i < split.length; i++) {
-            final String s = split[i];
-            if(TextUtils.isEmpty(s.trim())){
-                continue;
-            }
-            final String[] split1 = s.split("-");
-            final int x = Integer.parseInt(split1[0]);
-            final int y = Integer.parseInt(split1[1]);
-            sActionMap.put(i + 2, new EventClick("", new Point(x, y)));
-        }
-    }
-
     @Override
     public void onImpl(@NonNull StepCollector stepCollector) {
 
 
         stepCollector.next(1, true, (step, continuation) -> {
+            final String data = (String) step.getData();
+            LogControl.d(" data = " + data);
 
-            final Context application = AssistsService.Companion.getInstance().getApplicationContext();
-//            final Intent intent = application.getPackageManager().getLaunchIntentForPackage("com.taobao.taobao");
-//            final Intent intent = application.getPackageManager().getLaunchIntentForPackage("com.xreal.evapro.nebula");
-            final Intent intent = application.getPackageManager().getLaunchIntentForPackage("tv.danmaku.bili");
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            application.startActivity(intent);
+            final String string = SPUtils.getInstance().getString(data);
+            LogControl.d("string:" + string);
+            if (TextUtils.isEmpty(string)) {
+                return Step.Companion.getNone();
+            }
+            final List<EventClick> eventClicks;
+            eventClicks = new Gson().fromJson(string, new TypeToken<List<EventClick>>() {
+            }.getType());
+            if (eventClicks != null) {
+                String pkgName = eventClicks.get(0).pkgName;
+                for (int i = 0; i < eventClicks.size(); i++) {
+                    final EventClick eventClick = eventClicks.get(i);
+                    if (i == 0) {
+                        continue;
+                    }
+                    sActionMap.put(i + 1, eventClick);
+                }
+                pointOption(stepCollector);
+                openPkgApp(pkgName);
+            }
 
-            return Step.Companion.get(2, this.getClass(), null, delay);
+            return Step.Companion.get(2, OperationAction.class, null, delay);
         });
+    }
 
+    private void pointOption(StepCollector stepCollector) {
         final Set<Integer> keySet = sActionMap.keySet();
         for (Integer integer : keySet) {
             stepCollector.next(integer, true, (step, continuation) -> {
-                final EventClick eventClick = sActionMap.get(step.getStep());
-                Log.e(TAG, " key =" + step.getStep() + "  " + eventClick);
-                clickByNode(eventClick.point);
-
-
-                return Step.Companion.get(step.getStep() + 1, ShoppingAction.class, null, delay);
+                final EventClick eventClick1 = sActionMap.get(step.getStep());
+                Log.e(TAG, " key =" + step.getStep() + "  " + eventClick1);
+                clickByNode(eventClick1.point);
+                return Step.Companion.get(step.getStep() + 1, OperationAction.class, null, delay);
             });
         }
         stepCollector.next(sActionMap.size() + 2, true, (step, continuation) -> {
@@ -83,6 +85,16 @@ public class ShoppingAction extends StepImpl {
 
             return Step.Companion.getNone();
         });
+    }
+
+    private void openPkgApp(String pkgName) {
+        if (TextUtils.isEmpty(pkgName)) {
+            return;
+        }
+        final Context application = AssistsService.Companion.getInstance().getApplicationContext();
+        final Intent intent = application.getPackageManager().getLaunchIntentForPackage(pkgName);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        application.startActivity(intent);
     }
 
     public static boolean clickByNode(Point point) {

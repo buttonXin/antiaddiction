@@ -24,23 +24,7 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
 
     private String currentPkgName = "";
     private String curAppName = "";
-    private int countToast = 0;
 
-
-    Timer timerPackage = new Timer();
-    Timer timerToast = new Timer();
-    TimerTask taskToast = new TimerTask() {
-        @Override
-        public void run() {
-            if (countToast >= 3) {
-                cancel();
-                countToast = 0;
-                currentPkgName = "";
-            }
-            countToast++;
-            toast(curAppName + " 过度使用哦,快休息休息");
-        }
-    };
 
     private PackageManager packageManager;
     private Set<String> stringSet;
@@ -91,16 +75,9 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
 
         if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
 
-//            if (stringSet == null || stringSet.size() == 0) {
-//                return;
-//            }
-
             if (currentPkgName.equals(packageName)) {
                 return;
             }
-
-            taskToast.cancel();
-            countToast = 0;
 
             currentPkgName = packageName;
             if (!stringSet.contains(packageName)) {
@@ -110,8 +87,6 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
 
             Log.e(TAG, "onAccessibilityEvent: " + packageName);
 
-            timerPackage.cancel();
-            timerToast.cancel();
 
             String appName = "";
             try {
@@ -121,29 +96,6 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
             }
 
             curAppName = appName;
-            toast("打开了 " + appName);
-            timerPackage = new Timer();
-            timerPackage.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    timerToast = new Timer();
-                    taskToast = new TimerTask() {
-                        @Override
-                        public void run() {
-                            if (countToast >= 3) {
-                                cancel();
-                                countToast = 0;
-                                currentPkgName = "";
-                                return;
-                            }
-                            countToast++;
-                            toast(curAppName + " 超时了,歇歇先");
-                        }
-                    };
-                    timerToast.schedule(taskToast, 0, 3000);
-                }
-            }, timeout);
-
         }
 
     }
@@ -164,7 +116,7 @@ public class AntiAddictionService extends AccessibilityService implements DataMa
     private void _performAction(String packageName, List<AccessibilityNodeInfo> nodeInfos) {
         for (int i = 0; i < nodeInfos.size(); i++) {
             nodeInfos.get(i).performAction(AccessibilityNodeInfo.ACTION_CLICK);
-//            Log.e(TAG, "_performAction:packageName= " + packageName);
+            Log.e(TAG, "_performAction:packageName= " + packageName);
         }
     }
 
