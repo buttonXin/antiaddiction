@@ -9,7 +9,7 @@ import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
 
-import com.oldhigh.antiaddiction.activity.HomeAct;
+import com.oldhigh.antiaddiction.HomeAct;
 
 
 public class NotificationHelper {
@@ -27,7 +27,8 @@ public class NotificationHelper {
         }
 
         // 🔹 创建 PendingIntent 触发 BroadcastReceiver
-        Intent broadcastIntent = new Intent(context, HomeAct.class);
+        final Intent broadcastIntent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+//        Intent broadcastIntent = new Intent(context, HomeAct.class);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context, 0, broadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);

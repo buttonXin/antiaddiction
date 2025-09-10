@@ -44,6 +44,7 @@ public class SinglePointFG extends BaseOLFragment {
             }
             strings.remove(mContent);
             SPUtils.getInstance().put(SpKey.KEY_POINT_list, strings);
+            removeFragment();
         });
         addLine();
 
@@ -57,7 +58,14 @@ public class SinglePointFG extends BaseOLFragment {
         }.getType());
         if (eventClicks != null) {
             for (int i = 0; i < eventClicks.size(); i++) {
-                addText(eventClicks.get(i).point + "  pkg=" + eventClicks.get(i).pkgName);
+                addText(
+                        "第" + i + "步" + " " +
+                                (TextUtils.isEmpty(eventClicks.get(i).nickName) ? "" : "名称: "+eventClicks.get(i).nickName)
+                                + "  " + (eventClicks.get(i).delayTime == 0 ? "" : eventClicks.get(i).delayTime + "s")
+                                + (eventClicks.get(i).point == null ? "" : "  " + eventClicks.get(i).point)
+                                + (TextUtils.isEmpty(eventClicks.get(i).pkgName) ? "" : "  pkg=" + eventClicks.get(i).pkgName)
+
+                );
             }
         }
     }

@@ -1,5 +1,7 @@
 package com.oldhigh.antiaddiction.feature.operate;
 
+import android.content.Intent;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -10,7 +12,6 @@ import com.oldhigh.antiaddiction.activity.BaseOLFragment;
 import com.oldhigh.antiaddiction.bean.EventClick;
 import com.oldhigh.antiaddiction.feature.SpKey;
 import com.oldhigh.antiaddiction.feature.other_3d_app.SelectAppFragment;
-import com.oldhigh.antiaddiction.util.FloatPointHelper;
 import com.oldhigh.antiaddiction.util.LogControl;
 import com.oldhigh.antiaddiction.util.SPUtils;
 
@@ -23,6 +24,8 @@ public class AddOperateFG extends BaseOLFragment {
 
 
     private TextView mTextView;
+    private EditText mEditTextAppTime;
+    private String mPackageName;
 
     @Override
     protected void addTitleBar(String text) {
@@ -39,12 +42,15 @@ public class AddOperateFG extends BaseOLFragment {
                 "再打开应用的功能位置的下一页, 再次开始, 点击下一次要操作的位置. 依次进行.\n" +
                 "最后点击结束.");
         addLine();
-        mEditText = addEditText("请输入节点名称,不能有空格,不能为空");
-        addButton("先选择要启动的app", v -> {
-            final String content = mEditText.getText().toString();
+        mEditText = addEditText("请先输入操作组名称");
+        mEditTextAppTime = addEditText("启动app后多少秒执行", 1);
+        mEditTextAppTime.setInputType(InputType.TYPE_CLASS_NUMBER);
+        addButton("选择启动的app", 1, v -> {
+            final String content = mEditText.getText().toString().trim();
+            final String time = mEditTextAppTime.getText().toString();
             LogControl.d("content:" + content);
-            if (TextUtils.isEmpty(content)) {
-                toast("请输入内容");
+            if (TextUtils.isEmpty(content) || TextUtils.isEmpty(time)) {
+                toast("请输入内容 / 时间");
                 return;
             }
             final SelectAppFragment selectAppFragment = new SelectAppFragment();
@@ -65,7 +71,10 @@ public class AddOperateFG extends BaseOLFragment {
                     }.getType());
                 }
                 final EventClick eventClick = new EventClick();
+                mPackageName = packageInfo.packageName;
                 eventClick.pkgName = packageInfo.packageName;
+                eventClick.delayTime = Integer.parseInt(time);
+                eventClick.nickName = packageInfo.applicationInfo.loadLabel(mActivity.getPackageManager()).toString();
                 eventClicks.add(eventClick);
 
                 SPUtils.getInstance().put(content, new Gson().toJson(eventClicks));
@@ -76,6 +85,10 @@ public class AddOperateFG extends BaseOLFragment {
             LogControl.d("content:" + content);
             if (TextUtils.isEmpty(content)) {
                 toast("请输入内容");
+                return;
+            }
+            if (TextUtils.isEmpty(mPackageName)) {
+                toast("请先选择启动的app");
                 return;
             }
             final FloatPointHelper floatPointHelper = new FloatPointHelper(mActivity);
@@ -89,7 +102,9 @@ public class AddOperateFG extends BaseOLFragment {
             }
             SPUtils.getInstance().put(SpKey.KEY_POINT_list, endSets);
 
-            mActivity.moveTaskToBack(true);
+            final Intent intent = mActivity.getPackageManager().getLaunchIntentForPackage(mPackageName);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            mActivity.startActivity(intent);
         });
         addLine();
         addButton("查看操作组", v -> checkPoint());
@@ -116,7 +131,16 @@ public class AddOperateFG extends BaseOLFragment {
         if (eventClicks != null) {
             StringBuilder text = new StringBuilder();
             for (int i = 0; i < eventClicks.size(); i++) {
-                text.append(String.format("%d = %s = %s", i, eventClicks.get(i).point, eventClicks.get(i).pkgName) + "\n");
+
+                text.append(
+                        "第" + i + "步" + " " +
+                                (TextUtils.isEmpty(eventClicks.get(i).nickName) ? "" : "名称: "+eventClicks.get(i).nickName)
+                                + "  " + (eventClicks.get(i).delayTime == 0 ? "" : eventClicks.get(i).delayTime + "s")
+                                + (eventClicks.get(i).point == null ? "" : "  " + eventClicks.get(i).point)
+                                + (TextUtils.isEmpty(eventClicks.get(i).pkgName) ? "" : "  pkg=" + eventClicks.get(i).pkgName)
+
+                );
+                text.append("\n");
             }
             mTextView.setText(text.toString());
         }

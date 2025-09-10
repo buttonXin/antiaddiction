@@ -1,14 +1,16 @@
-package com.oldhigh.antiaddiction.activity;
+package com.oldhigh.antiaddiction;
 
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.oldhigh.antiaddiction.R;
+import com.oldhigh.antiaddiction.activity.BaseOLActivity;
 import com.oldhigh.antiaddiction.feature.SpKey;
 import com.oldhigh.antiaddiction.feature.operate.PointFg;
 import com.oldhigh.antiaddiction.util.NotificationHelper;
@@ -17,33 +19,25 @@ import com.ven.assists.AssistsCore;
 
 public class HomeAct extends BaseOLActivity {
 
+    private Button mButtonNotify;
+
     @Override
     protected void addTitleBar(String text) {
         super.addTitleBar(getString(R.string.app_name));
     }
+
     private TextView mTextView;
-    private boolean isServiceStart = false;
     private EditText mEditText;
+
+    private boolean hasAbs = false;
+    private boolean hasNotify = false;
 
     @Override
     public void initData() {
         mTextView = addText("权限状态");
 
         addButton("申请权限", view -> {
-            mTextView.setText("申请通知消息权限");
-            // 监听通知权限
-            String enabledListeners = Settings.Secure.getString(
-                    getContentResolver(),
-                    "enabled_notification_listeners"
-            );
-            String packageName = getPackageName();
-            final boolean notifyPer = enabledListeners != null && enabledListeners.contains(packageName);
-            Log.e(TAG, "checkService: " + notifyPer);
-            if (!notifyPer) {
-                Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
-                startActivity(intent);
-                return;
-            }
+
             // 判断无障碍服务是否开启
             if (!AssistsCore.INSTANCE.isAccessibilityServiceEnabled()) {
                 mTextView.setText("无障碍服务未开启");
@@ -60,22 +54,28 @@ public class HomeAct extends BaseOLActivity {
                 return;
             }
             mTextView.setText("权限全部已开启");
-            isServiceStart = true;
             showView();
         });
     }
 
     private void showView() {
+        if (hasAbs) {
+            return;
+        }
+        hasAbs = true;
 
         addButton("查看操作组", view -> {
             new PointFg().openFragment(getFragmentManager());
         });
+        addLine();
         final boolean aBoolean = SPUtils.getInstance().getBoolean(SpKey.KEY_Notification);
-        addSwitch("是否启动通知栏执行", aBoolean, (view, isChecked) -> {
+        addSwitch("是否启动通知栏执行-操作组", aBoolean, (view, isChecked) -> {
             SPUtils.getInstance().put(SpKey.KEY_Notification, isChecked);
+            mEditText.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            mButtonNotify.setVisibility(isChecked ? View.VISIBLE : View.GONE);
         });
         mEditText = addEditText("输入操作组名称", 1);
-        addButton("测试通知栏执行", 1, view -> {
+        mButtonNotify = addButton("测试通知栏执行", 1, view -> {
             final String string = mEditText.getText().toString();
             if (TextUtils.isEmpty(string)) {
                 toast("请输入内容");
@@ -83,5 +83,25 @@ public class HomeAct extends BaseOLActivity {
             }
             NotificationHelper.sendNotification(getApplicationContext(), string);
         });
+        if (!aBoolean) {
+            mEditText.setVisibility(View.GONE);
+            mButtonNotify.setVisibility(View.GONE);
+            addButton("申请通知栏权限", view -> {
+                // 监听通知权限
+                String enabledListeners = Settings.Secure.getString(
+                        getContentResolver(),
+                        "enabled_notification_listeners"
+                );
+                String packageName = getPackageName();
+                final boolean notifyPer = enabledListeners != null && enabledListeners.contains(packageName);
+                Log.e(TAG, "checkService: " + notifyPer);
+                if (!notifyPer) {
+                    Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+                    startActivity(intent);
+                }
+            });
+        }
+
+
     }
 }

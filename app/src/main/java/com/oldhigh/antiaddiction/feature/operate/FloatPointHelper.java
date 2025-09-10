@@ -1,13 +1,16 @@
-package com.oldhigh.antiaddiction.util;
+package com.oldhigh.antiaddiction.feature.operate;
 
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
 import android.os.Build;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -22,8 +25,10 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.hjq.toast.ToastUtils;
 import com.oldhigh.antiaddiction.bean.EventClick;
-import com.oldhigh.antiaddiction.feature.SpKey;
+import com.oldhigh.antiaddiction.util.LogControl;
+import com.oldhigh.antiaddiction.util.SPUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +49,7 @@ public class FloatPointHelper {
     private boolean isRecording = false;
     private Point currentPoint = null;
     private View redDotView; // 添加红点视图
-    private EditText mEditText,mEditTextTime;
+    private EditText mEditTextName, mEditTextTime;
     private String mContent;
 
     public FloatPointHelper(Context context) {
@@ -73,6 +78,7 @@ public class FloatPointHelper {
 
     private boolean isStartLocation = false;
 
+    @SuppressLint("ClickableViewAccessibility")
     private void initFloatView() {
         floatView = new FrameLayout(context);
 //        floatView.setOrientation(LinearLayout.VERTICAL);
@@ -100,17 +106,24 @@ public class FloatPointHelper {
 
         // 保存按钮
 
-//        mEditText = new EditText(context);
-//        mEditText.setHint("操作名称");
-//        mEditTextTime = new EditText(context);
-//        mEditTextTime.setHint("等待时间");
-//        // 只能输入数字
-//        mEditTextTime.setInputType(InputType.TYPE_CLASS_NUMBER);
+        mEditTextName = new EditText(context);
+        mEditTextName.setHint("操作名称");
+        mEditTextName.setVisibility(View.GONE);
+        mEditTextTime = new EditText(context);
+        mEditTextTime.setHint("多久执行下一个");
+        mEditTextTime.setVisibility(View.GONE);
+        // 只能输入数字
+        mEditTextTime.setInputType(InputType.TYPE_CLASS_NUMBER);
 
         // 保存按钮
         endButton = new Button(context);
         endButton.setText("结束");
-        endButton.setOnClickListener(v -> dismiss());
+        endButton.setOnClickListener(v -> {
+            dismiss();
+            final Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        });
 
         Button switchLocationButton = new Button(context);
         switchLocationButton.setText("换位");
@@ -134,8 +147,8 @@ public class FloatPointHelper {
                 LinearLayout.LayoutParams.WRAP_CONTENT);
         buttonLayout.addView(coordinateText, buttonParams);
         buttonLayout.addView(startButton, buttonParams);
-//        buttonLayout.addView(mEditText, buttonParams);
-//        buttonLayout.addView(mEditTextTime, buttonParams);
+        buttonLayout.addView(mEditTextName, buttonParams);
+        buttonLayout.addView(mEditTextTime, buttonParams);
         buttonLayout.addView(saveButton, buttonParams);
         buttonLayout.addView(switchLocationButton, buttonParams);
         buttonLayout.addView(endButton, buttonParams);
@@ -167,7 +180,8 @@ public class FloatPointHelper {
         }
         redDotParams.format = PixelFormat.RGBA_8888;
         redDotParams.gravity = Gravity.START | Gravity.TOP;
-        redDotParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+        redDotParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
         redDotParams.width = 30; // 红点大小
         redDotParams.height = 30; // 红点大小
     }
@@ -206,31 +220,35 @@ public class FloatPointHelper {
             layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT;
             layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT;
             layoutParams.gravity = Gravity.END | Gravity.CENTER;
+            layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
         } else {
             // 恢复原始尺寸
             layoutParams.width = originalWidth;
             layoutParams.height = originalHeight;
             layoutParams.gravity = Gravity.START | Gravity.TOP;
+            layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         }
 
         if (isRecording) {
+            mEditTextName.setVisibility(View.VISIBLE);
+            mEditTextTime.setVisibility(View.VISIBLE);
             saveButton.setEnabled(true);
             startButton.setText("停止");
             coordinateText.setText("请点击屏幕任意位置");
 
-            // 移除 FLAG_NOT_TOUCH_MODAL 标志，使点击事件不透传给底层 Activity
-            layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
             windowManager.updateViewLayout(floatView, layoutParams);
 
             Toast.makeText(context, "请点击屏幕获取坐标", Toast.LENGTH_SHORT).show();
         } else {
+            mEditTextName.setVisibility(View.GONE);
+            mEditTextTime.setVisibility(View.GONE);
             startButton.setText("开始");
             coordinateText.setText("等待开始...");
             saveButton.setEnabled(false);
             currentPoint = null;
 
-            // 恢复 FLAG_NOT_TOUCH_MODAL 标志，使点击事件可以透传给底层 Activity
-            layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
             windowManager.updateViewLayout(floatView, layoutParams);
         }
 
@@ -247,27 +265,45 @@ public class FloatPointHelper {
     }
 
     private void saveCoordinate() {
-        if (currentPoint != null) {
-            final int x = currentPoint.x;
-            final int y = currentPoint.y;
-
-            LogControl.d(" saveCoordinate: " +  " " + x + " " + y);
-
-            String string = SPUtils.getInstance().getString(mContent);
-            final List<EventClick> eventClicks;
-            if (TextUtils.isEmpty(string)) {
-                eventClicks = new ArrayList<>();
-            } else {
-                // [{xxx,xxx},{xxx,xxx}]
-                eventClicks = new Gson().fromJson(string, new TypeToken<List<EventClick>>() {
-                }.getType());
-            }
-            eventClicks.add(new EventClick("", new Point(x, y)));
-
-            SPUtils.getInstance().put(mContent, new Gson().toJson(eventClicks));
-
-            toggleRecording();
+        if (currentPoint == null) {
+            ToastUtils.show("请先点击屏幕获取坐标");
+            return;
         }
+        final int x = currentPoint.x;
+        final int y = currentPoint.y;
+
+        LogControl.d(" saveCoordinate: " + " " + x + " " + y);
+
+        final String name = mEditTextName.getText().toString();
+        final String timeStr = mEditTextTime.getText().toString();
+        final int time = Integer.parseInt(TextUtils.isEmpty(timeStr) ? "0" : timeStr);
+        LogControl.d(" saveCoordinate: " + name + " " + time);
+        if (name.isEmpty() || time <= 0) {
+            ToastUtils.show("请输入正确的数据");
+            return;
+        }
+        String string = SPUtils.getInstance().getString(mContent);
+        final List<EventClick> eventClicks;
+        if (TextUtils.isEmpty(string)) {
+            eventClicks = new ArrayList<>();
+        } else {
+            // [{xxx,xxx},{xxx,xxx}]
+            eventClicks = new Gson().fromJson(string, new TypeToken<List<EventClick>>() {
+            }.getType());
+        }
+        final EventClick eventClick = new EventClick("", new Point(x, y));
+        eventClick.delayTime = time;
+        eventClick.nickName = name;
+
+        eventClicks.add(eventClick);
+
+        SPUtils.getInstance().put(mContent, new Gson().toJson(eventClicks));
+
+        mEditTextName.getText().clear();
+        mEditTextTime.getText().clear();
+
+        toggleRecording();
+
     }
 
     // 在指定位置显示红点

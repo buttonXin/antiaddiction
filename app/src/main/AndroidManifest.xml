@@ -21,7 +21,7 @@
         android:theme="@android:style/Theme.Black.NoTitleBar">
 
         <activity
-            android:name=".activity.HomeAct"
+            android:name=".HomeAct"
             android:launchMode="singleTop"
             android:enabled="true"
             android:exported="true">

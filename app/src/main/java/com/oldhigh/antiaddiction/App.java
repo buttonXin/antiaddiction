@@ -17,7 +17,6 @@ public class App extends Application {
         ToastUtils.init(this, new ToastStrategy() {
 
         });
-        DataManager.get().init(this);
 
         ActivityLifecycleHelper.registerLifecycle(this);
     }
