@@ -32,12 +32,12 @@ public class MyNotificationListenerService extends NotificationListenerService {
             Log.d(TAG, "收到通知 - 包名: " + packageName);
             Log.d(TAG, "标题: " + title);
             Log.d(TAG, "内容: " + text);
-            hasMatch(title);
-            hasMatch(text);
+            hasMatch(title, sbn);
+            hasMatch(text, sbn);
         }
     }
 
-    private void hasMatch(CharSequence text) {
+    private void hasMatch(CharSequence text, StatusBarNotification sbn) {
         Log.e(TAG, "hasMatch: " + text);
         if (TextUtils.isEmpty(text)) {
             return;
@@ -45,7 +45,9 @@ public class MyNotificationListenerService extends NotificationListenerService {
         final Set<String> stringSet = SPUtils.getInstance().getStringSet(SpKey.KEY_POINT_list);
         if (stringSet != null) {
             for (String s : stringSet) {
-                if (text.toString().contains(s)) {
+                if (text.toString().contains(SpKey.notification_common + s)) {
+                    // 移除通知
+                    cancelNotification(sbn.getKey());
                     handlePoint(s);
                 }
             }
@@ -59,6 +61,8 @@ public class MyNotificationListenerService extends NotificationListenerService {
             return;
         }
         StepManager.INSTANCE.execute(OperationAction.class, 1, 100, s, true);
+
+
     }
 
     @Override

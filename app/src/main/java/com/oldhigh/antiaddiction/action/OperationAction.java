@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.oldhigh.antiaddiction.bean.EventClick;
 import com.oldhigh.antiaddiction.util.LogControl;
+import com.oldhigh.antiaddiction.util.NotificationHelper;
 import com.oldhigh.antiaddiction.util.SPUtils;
 import com.ven.assists.service.AssistsService;
 import com.ven.assists.stepper.Step;
@@ -35,6 +36,7 @@ public class OperationAction extends StepImpl {
     private static final int delay = 3000;
 
     private Map<Integer, EventClick> sActionMap = new HashMap<>();
+    private String mNextOperation;
 
 
     @Override
@@ -45,6 +47,7 @@ public class OperationAction extends StepImpl {
             final String data = (String) step.getData();
             LogControl.d(" data = " + data);
 
+            mNextOperation = "";
             final String string = SPUtils.getInstance().getString(data);
             LogControl.d("string:" + string);
             if (TextUtils.isEmpty(string)) {
@@ -60,7 +63,11 @@ public class OperationAction extends StepImpl {
                     if (i == 0) {
                         continue;
                     }
-                    sActionMap.put(i + 1, eventClick);
+                    if (!TextUtils.isEmpty(eventClick.nextOperation)) {
+                        mNextOperation = eventClick.nextOperation;
+                    } else {
+                        sActionMap.put(i + 1, eventClick);
+                    }
                 }
                 pointOption(stepCollector);
                 openPkgApp(pkgName);
@@ -81,8 +88,11 @@ public class OperationAction extends StepImpl {
             });
         }
         stepCollector.next(sActionMap.size() + 2, true, (step, continuation) -> {
-            Log.e(TAG, "onImpl:  step=" + step);
+            Log.e(TAG, "onImpl:  step=" + step + "  mNextOperation= " + mNextOperation);
 
+            if (!TextUtils.isEmpty(mNextOperation)) {
+                NotificationHelper.sendNotification(AssistsService.Companion.getInstance().getApplicationContext(), mNextOperation);
+            }
             return Step.Companion.getNone();
         });
     }

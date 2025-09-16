@@ -25,6 +25,11 @@ public class EventClick {
      */
     public long delayTime;
 
+    /**
+     * 下一步操作
+     */
+    public String nextOperation;
+
     public EventClick() {
     }
 
@@ -44,6 +49,7 @@ public class EventClick {
                 ", clickName='" + clickName + '\'' +
                 ", point=" + point +
                 ", delayTime=" + delayTime +
+                ", nextOperation='" + nextOperation +
                 '}';
     }
 }

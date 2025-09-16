@@ -10,6 +10,7 @@ import android.os.Build;
 import androidx.core.app.NotificationCompat;
 
 import com.oldhigh.antiaddiction.HomeAct;
+import com.oldhigh.antiaddiction.feature.SpKey;
 
 
 public class NotificationHelper {
@@ -37,7 +38,7 @@ public class NotificationHelper {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)  // 通知图标
                 .setContentTitle("测试通知")  // 标题
-                .setContentText(content)  // 内容
+                .setContentText(SpKey.notification_common + content)  // 内容
                 .setAutoCancel(true)  // 点击后自动取消通知
                 .setContentIntent(pendingIntent);  // 设置点击事件
 

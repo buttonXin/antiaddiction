@@ -3,6 +3,7 @@ package com.oldhigh.antiaddiction.feature.operate;
 import android.content.Intent;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -26,6 +27,7 @@ public class AddOperateFG extends BaseOLFragment {
     private TextView mTextView;
     private EditText mEditTextAppTime;
     private String mPackageName;
+    private Button mSelectApp;
 
     @Override
     protected void addTitleBar(String text) {
@@ -45,7 +47,7 @@ public class AddOperateFG extends BaseOLFragment {
         mEditText = addEditText("请先输入操作组名称");
         mEditTextAppTime = addEditText("启动app后多少秒执行", 1);
         mEditTextAppTime.setInputType(InputType.TYPE_CLASS_NUMBER);
-        addButton("选择启动的app", 1, v -> {
+        mSelectApp = addButton("选择启动的app", 1, v -> {
             final String content = mEditText.getText().toString().trim();
             final String time = mEditTextAppTime.getText().toString();
             LogControl.d("content:" + content);
@@ -75,6 +77,7 @@ public class AddOperateFG extends BaseOLFragment {
                 eventClick.pkgName = packageInfo.packageName;
                 eventClick.delayTime = Integer.parseInt(time);
                 eventClick.nickName = packageInfo.applicationInfo.loadLabel(mActivity.getPackageManager()).toString();
+                mSelectApp.setText(eventClick.nickName);
                 eventClicks.add(eventClick);
 
                 SPUtils.getInstance().put(content, new Gson().toJson(eventClicks));
@@ -134,10 +137,11 @@ public class AddOperateFG extends BaseOLFragment {
 
                 text.append(
                         "第" + i + "步" + " " +
-                                (TextUtils.isEmpty(eventClicks.get(i).nickName) ? "" : "名称: "+eventClicks.get(i).nickName)
+                                (TextUtils.isEmpty(eventClicks.get(i).nickName) ? "" : "名称: " + eventClicks.get(i).nickName)
                                 + "  " + (eventClicks.get(i).delayTime == 0 ? "" : eventClicks.get(i).delayTime + "s")
                                 + (eventClicks.get(i).point == null ? "" : "  " + eventClicks.get(i).point)
                                 + (TextUtils.isEmpty(eventClicks.get(i).pkgName) ? "" : "  pkg=" + eventClicks.get(i).pkgName)
+                                + (TextUtils.isEmpty(eventClicks.get(i).nextOperation) ? "" : "  下一步执行:" + eventClicks.get(i).nextOperation)
 
                 );
                 text.append("\n");
