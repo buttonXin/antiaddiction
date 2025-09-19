@@ -1,9 +1,14 @@
 package com.oldhigh.antiaddiction.action;
 
+import android.annotation.SuppressLint;
+import android.app.KeyguardManager;
+import android.app.admin.DevicePolicyManager;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.util.Log;
 import android.view.accessibility.AccessibilityNodeInfo;
 
@@ -12,6 +17,7 @@ import androidx.annotation.NonNull;
 import com.oldhigh.antiaddiction.util.FileUtil;
 import com.oldhigh.antiaddiction.util.LogControl;
 import com.ven.assists.AssistsCore;
+import com.ven.assists.service.AssistsService;
 
 import java.util.List;
 
@@ -176,5 +182,42 @@ public class OtherAction {
         } else {
             Log.d("Accessibility", "输入失败，可能被应用限制");
         }
+    }
+
+    /**
+     * 锁屏
+     */
+    public static void lockNow() {
+        LogControl.d(" 锁屏");
+        final Context application = AssistsService.Companion.getInstance().getApplicationContext();
+        DevicePolicyManager dpm =
+                (DevicePolicyManager) application.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        dpm.lockNow();
+    }
+
+    /**
+     * 解锁
+     */
+    public static void unlockNow() {
+        LogControl.d(" 解锁");
+        final Context application = AssistsService.Companion.getInstance().getApplicationContext();
+//        DevicePolicyManager dpm =
+//                (DevicePolicyManager) application.getSystemService(Context.DEVICE_POLICY_SERVICE);
+
+        //解锁
+        try {
+            KeyguardManager km = (KeyguardManager) application.getSystemService(Context.KEYGUARD_SERVICE);
+            final KeyguardManager.KeyguardLock kl = km.newKeyguardLock("unLock");
+            kl.disableKeyguard();
+
+            PowerManager mgr = (PowerManager) application.getSystemService(Context.POWER_SERVICE);
+            @SuppressLint("InvalidWakeLockTag")
+            PowerManager.WakeLock wl = mgr.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_DIM_WAKE_LOCK, "bright");
+            wl.acquire(6000);
+            wl.release();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }

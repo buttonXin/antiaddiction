@@ -75,6 +75,7 @@ public class MyNotificationListenerService extends NotificationListenerService {
 
         switch (content) {
             case "1":
+                OtherAction.unlockNow();
                 OtherAction.screenshot();
                 break;
             case "2":
@@ -114,7 +115,15 @@ public class MyNotificationListenerService extends NotificationListenerService {
             final String hint = content.substring(content.indexOf("8:") + 1, content.indexOf(","));
             final String temp = content.substring(content.indexOf(",") + 1, content.length() - 1);
             OtherAction.byEditText(hint, temp);
-
+            return;
+        }
+        if (content.contains("9")) {
+            OtherAction.lockNow();
+            return;
+        }
+        if (content.contains("10")) {
+            OtherAction.unlockNow();
+            return;
         }
 
     }

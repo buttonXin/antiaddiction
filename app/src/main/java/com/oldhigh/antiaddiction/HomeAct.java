@@ -1,5 +1,7 @@
 package com.oldhigh.antiaddiction;
 
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.Settings;
@@ -13,6 +15,7 @@ import android.widget.TextView;
 import com.oldhigh.antiaddiction.activity.BaseOLActivity;
 import com.oldhigh.antiaddiction.feature.SpKey;
 import com.oldhigh.antiaddiction.feature.operate.PointFg;
+import com.oldhigh.antiaddiction.receiver.AdminReceiver;
 import com.oldhigh.antiaddiction.util.NotificationHelper;
 import com.oldhigh.antiaddiction.util.SPUtils;
 import com.ven.assists.AssistsCore;
@@ -101,6 +104,14 @@ public class HomeAct extends BaseOLActivity {
                 }
             });
         }
+
+        addButton("锁屏权限", view -> {
+            ComponentName componentName = new ComponentName(this, AdminReceiver.class);
+            Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName);
+            intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "--设备管理器--");
+            startActivityForResult(intent, 0);
+        });
 
 
     }
