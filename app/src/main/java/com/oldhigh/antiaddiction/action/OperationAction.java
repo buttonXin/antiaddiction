@@ -2,10 +2,13 @@ package com.oldhigh.antiaddiction.action;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.net.Uri;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -13,7 +16,9 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.oldhigh.antiaddiction.App;
 import com.oldhigh.antiaddiction.bean.EventClick;
+import com.oldhigh.antiaddiction.feature.SpKey;
 import com.oldhigh.antiaddiction.util.LogControl;
 import com.oldhigh.antiaddiction.util.NotificationHelper;
 import com.oldhigh.antiaddiction.util.SPUtils;
@@ -38,6 +43,7 @@ public class OperationAction extends StepImpl {
     private Map<Integer, EventClick> sActionMap = new HashMap<>();
     private String mNextOperation;
 
+    private android.os.Handler handler = new android.os.Handler(Looper.getMainLooper());
 
     @Override
     public void onImpl(@NonNull StepCollector stepCollector) {
@@ -90,11 +96,29 @@ public class OperationAction extends StepImpl {
         stepCollector.next(sActionMap.size() + 2, true, (step, continuation) -> {
             Log.e(TAG, "onImpl:  step=" + step + "  mNextOperation= " + mNextOperation);
 
+            OtherAction.back();
+            handler.postDelayed(OtherAction::back, 500);
+            deleteUri();
+
             if (!TextUtils.isEmpty(mNextOperation)) {
-                NotificationHelper.sendNotification(AssistsService.Companion.getInstance().getApplicationContext(), mNextOperation);
+                handler.postDelayed(() -> NotificationHelper.sendNotification(AssistsService.Companion.getInstance().getApplicationContext(), mNextOperation), 2000);
             }
             return Step.Companion.getNone();
         });
+    }
+
+    /**
+     * 删除保存的uri图片
+     */
+    private void deleteUri() {
+        final String picUri = SPUtils.getInstance().getString(SpKey.screenshot_uri);
+        LogControl.d(" picUri:" + picUri);
+        ContentResolver contentResolver = App.getInstance().getContentResolver();
+
+        // 使用 ContentResolver 删除 MediaStore 中的条目
+        int rowsAffected = contentResolver.delete(Uri.parse(picUri), null, null);
+        LogControl.d("delete", rowsAffected);
+
     }
 
     private void openPkgApp(String pkgName) {
