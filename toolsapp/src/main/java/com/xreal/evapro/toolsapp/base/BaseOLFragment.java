@@ -416,7 +416,7 @@ public abstract class BaseOLFragment extends Fragment {
         final View view = new View(llContent.getContext());
         final LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 2);
-        layoutParams.setMargins(20, 0, 20, 0);
+        layoutParams.setMargins(20, 0, 20, getBottomMargin());
         view.setLayoutParams(layoutParams);
         view.setBackgroundColor(Color.parseColor("#63999999"));
         llContent.addView(view);

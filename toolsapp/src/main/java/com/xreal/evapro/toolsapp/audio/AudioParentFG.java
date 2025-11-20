@@ -39,5 +39,6 @@ public class AudioParentFG extends BaseOLFragment {
 
         addButton("倒计时语音功能-配置", v -> new AudioConfigFG().openFragment(getFragmentManager()));
         addButton("显示", v -> new AudioShowFG().openFragment(getFragmentManager()));
+        addButton("复读机", v -> new AudioRepeaterFG().setBaseParams("复读机").openFragment(getFragmentManager()));
     }
 }

@@ -52,11 +52,15 @@ public class AudioHelper {
     private String outputPath;
 
     public boolean startRecording() {
+        File outputDir = App.getInstance().getCacheDir();
+        outputPath = new File(outputDir, "recording_" + System.currentTimeMillis() + ".mp3").getAbsolutePath();
+        return startRecording(outputPath);
+    }
+
+    public boolean startRecording(String outputPath) {
         try {
             // 创建临时文件
-            File outputDir = App.getInstance().getCacheDir();
-            outputPath = new File(outputDir, "recording_" + System.currentTimeMillis() + ".mp3").getAbsolutePath();
-
+            this.outputPath = outputPath;
             mediaRecorder = new MediaRecorder();
             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
@@ -78,6 +82,9 @@ public class AudioHelper {
             mediaRecorder.stop();
             mediaRecorder.release();
             mediaRecorder = null;
+        }
+        if (time <= 0) {
+            return outputPath;
         }
         final Set<String> stringSet = SPUtils.getInstance().getStringSet(KEY_AUDIO_LIST, new ArraySet<>());
         SPUtils.getInstance().put(KEY_AUDIO_LIST, new ArraySet<>());
@@ -109,9 +116,20 @@ public class AudioHelper {
             return false;
         }
 
+        if (mediaPlayer != null) {
+            stopPlaying();
+        }
+
         if (filePath.contains(KEY_AUDIO_SPLIT)) {
             filePath = filePath.split(KEY_AUDIO_SPLIT)[1];
             LogControl.d(TAG, "playAudio: " + filePath);
+
+            final float volume = SPUtils.getInstance().getFloat("volume", 0.7f);
+            LogControl.d("volume", volume);
+            // 设置音量为最大音量的70%
+            int targetVolume = (int) (maxVolume * volume);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVolume, 0);
+
         }
 
         try {
@@ -123,13 +141,6 @@ public class AudioHelper {
 
             // 保存当前音量
             originalVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-
-            final float volume = SPUtils.getInstance().getFloat("volume", 0.7f);
-            LogControl.d("volume", volume);
-            // 设置音量为最大音量的70%
-            int targetVolume = (int) (maxVolume * volume);
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVolume, 0);
-
             mediaPlayer.setOnCompletionListener(mp -> {
                 // 播放结束后恢复音量
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalVolume, 0);

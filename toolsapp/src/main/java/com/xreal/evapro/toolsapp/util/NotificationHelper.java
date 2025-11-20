@@ -34,7 +34,7 @@ public class NotificationHelper {
     private RemoteViews mBigView;
     private RemoteViews mSmallView;
 
-    public static boolean mIsShowing = false;
+    public static boolean mIsShowing = true;
 
     private NotificationHelper() {
     }
@@ -58,7 +58,7 @@ public class NotificationHelper {
 
         // Android 8.0 及以上需要创建通知通道
         NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID, "olTools", NotificationManager.IMPORTANCE_DEFAULT);
+                CHANNEL_ID, "old_high", NotificationManager.IMPORTANCE_DEFAULT);
         // 这里设置整个通知渠道为 静音模式
         channel.setSound(null, null);
         channel.enableVibration(false);
