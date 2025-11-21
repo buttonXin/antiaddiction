@@ -1,13 +1,16 @@
 package com.xreal.evapro.toolsapp.audio;
 
 import android.content.Context;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.util.ArraySet;
 
 import com.xreal.evapro.toolsapp.App;
+import com.xreal.evapro.toolsapp.base.IResult;
 import com.xreal.evapro.toolsapp.util.LogControl;
 import com.xreal.evapro.toolsapp.util.SPUtils;
 
@@ -110,6 +113,10 @@ public class AudioHelper {
     private MediaPlayer mediaPlayer;
 
     public boolean playAudio(String filePath) {
+        return playAudio(filePath, null);
+    }
+
+    public boolean playAudio(String filePath, IResult<Void> iResult) {
         LogControl.d(TAG, "playAudio: " + filePath);
 
         if (TextUtils.isEmpty(filePath)) {
@@ -129,23 +136,64 @@ public class AudioHelper {
             // 设置音量为最大音量的70%
             int targetVolume = (int) (maxVolume * volume);
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVolume, 0);
-
         }
+
 
         try {
             if (mediaPlayer == null) {
                 mediaPlayer = new MediaPlayer();
                 mediaPlayer.setDataSource(filePath);
+                mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());
+
                 mediaPlayer.prepare();
+                mediaPlayer.setOnCompletionListener(mp -> {
+                    // 播放结束后恢复音量
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalVolume, 0);
+                    stopPlaying();
+                    if (iResult != null) {
+                        iResult.onResult(null);
+                    }
+                });
             }
 
-            // 保存当前音量
-            originalVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-            mediaPlayer.setOnCompletionListener(mp -> {
-                // 播放结束后恢复音量
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalVolume, 0);
-                stopPlaying();
-            });
+
+            mediaPlayer.start();
+        } catch (IOException e) {
+            LogControl.d("AudioPlayer", "播放失败", e);
+            return false;
+        }
+        return true;
+    }
+
+    public boolean playAudio(Context context, Uri uri, IResult<Void> iResult) {
+        LogControl.d(TAG, "playAudio: " + uri);
+
+        if (uri == null) {
+            return false;
+        }
+
+        if (mediaPlayer != null) {
+            stopPlaying();
+        }
+
+        try {
+            if (mediaPlayer == null) {
+                mediaPlayer = new MediaPlayer();
+                mediaPlayer.setDataSource(context, uri);
+                mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());
+
+                mediaPlayer.prepare();
+                mediaPlayer.setOnCompletionListener(mp -> {
+                    stopPlaying();
+                    if (iResult != null) {
+                        iResult.onResult(null);
+                    }
+                });
+            }
 
 
             mediaPlayer.start();
@@ -157,6 +205,7 @@ public class AudioHelper {
     }
 
     public void stopPlaying() {
+        LogControl.d();
         if (mediaPlayer != null) {
             mediaPlayer.stop();
             mediaPlayer.release();

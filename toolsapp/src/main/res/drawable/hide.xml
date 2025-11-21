@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+
+    >
+
+  <!-- 左侧外廓 -->
+  <path
+      android:pathData="M2.5,12c2.5,-4.5 6,-7 9.5,-7 1.7,0 3.4,0.6 5,1.8"
+      android:strokeColor="#000000"
+      android:strokeWidth="1.8"
+      android:fillColor="@android:color/transparent"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round"/>
+
+  <!-- 右侧外廓 -->
+  <path
+      android:pathData="M21.5,12c-2.5,4.5 -6,7 -9.5,7 -1.7,0 -3.4,-0.6 -5,-1.8"
+      android:strokeColor="#000000"
+      android:strokeWidth="1.8"
+      android:fillColor="@android:color/transparent"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round"/>
+
+  <!-- 中间瞳孔（用填充路径近似圆） -->
+  <!-- 这里用一个简单的闭合 path 来画半径 ~2.6 的圆 -->
+  <path
+      android:pathData="M14.6,12c0,1.437-1.163,2.6-2.6,2.6s-2.6-1.163-2.6-2.6 1.163-2.6 2.6-2.6 2.6,1.163 2.6,2.6z"
+      android:fillColor="#000000"
+      android:strokeColor="@android:color/transparent"/>
+
+  <!-- 斜杠（表示隐藏） -->
+  <path
+      android:pathData="M3.5,3.5 L20.5,20.5"
+      android:strokeColor="#000000"
+      android:strokeWidth="1.8"
+      android:fillColor="@android:color/transparent"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round"/>
+</vector>

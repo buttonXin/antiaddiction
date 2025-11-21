@@ -265,6 +265,7 @@ public abstract class BaseOLFragment extends Fragment {
 
         addLlView(button);
 
+        addLine();
         return button;
     }
 
@@ -331,7 +332,7 @@ public abstract class BaseOLFragment extends Fragment {
             });
         }
         addLlView(view);
-
+        addLine();
         return view;
     }
 
@@ -399,6 +400,7 @@ public abstract class BaseOLFragment extends Fragment {
         view.setChecked(checked);
         view.setOnCheckedChangeListener(listener);
         addLlView(view);
+        addLine();
         return view;
     }
 
@@ -460,6 +462,7 @@ public abstract class BaseOLFragment extends Fragment {
         LinearLayout linearLayout = mLlHorizontalMap.get(index);
         if (linearLayout == null) {
             linearLayout = getHorizontalLlView(index);
+            addLine();
         }
         if (params == null) {
             params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);

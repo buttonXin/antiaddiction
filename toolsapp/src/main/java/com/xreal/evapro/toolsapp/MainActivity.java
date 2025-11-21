@@ -5,6 +5,7 @@ import static com.xreal.evapro.toolsapp.HomeConfigFg.CAMERA_PAGE;
 import static com.xreal.evapro.toolsapp.HomeConfigFg.LOCAL_SERVER_PAGE;
 import static com.xreal.evapro.toolsapp.HomeConfigFg.MAGNIFIER_PAGE;
 
+import android.content.Intent;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.widget.Button;
@@ -13,6 +14,7 @@ import android.widget.LinearLayout;
 
 import com.xreal.evapro.toolsapp.audio.AudioParentFG;
 import com.xreal.evapro.toolsapp.base.BaseOLActivity;
+import com.xreal.evapro.toolsapp.base.IResult;
 import com.xreal.evapro.toolsapp.camrea.CameraPreviewFG;
 import com.xreal.evapro.toolsapp.local_server.LocalServerFG;
 import com.xreal.evapro.toolsapp.magnifier.MagnifierShowFG;
@@ -20,6 +22,9 @@ import com.xreal.evapro.toolsapp.note.NoteAct;
 import com.xreal.evapro.toolsapp.util.DensityUtil;
 import com.xreal.evapro.toolsapp.util.LogControl;
 import com.xreal.evapro.toolsapp.util.SPUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends BaseOLActivity {
 

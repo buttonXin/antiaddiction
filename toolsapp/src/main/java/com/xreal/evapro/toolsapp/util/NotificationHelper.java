@@ -7,8 +7,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Handler;
-import android.os.Looper;
 import android.widget.RemoteViews;
 
 import com.xreal.evapro.toolsapp.App;
@@ -27,14 +25,10 @@ public class NotificationHelper {
     private NotificationManager mNotificationManager; // 添加NotificationManager成员变量
     private Notification.Builder notificationBuilder;
 
-    private final Handler mHandler = new Handler(Looper.getMainLooper());
-    public static final int DELAY_TIME = 10 * 1000;
     public static final String HIDE_INFO = "hide";
-    private final Runnable mDelayRunnable = () -> changeContent(HIDE_INFO);
     private RemoteViews mBigView;
     private RemoteViews mSmallView;
 
-    public static boolean mIsShowing = true;
 
     private NotificationHelper() {
     }
@@ -115,9 +109,11 @@ public class NotificationHelper {
 
         // hide时,点击显示内容
         if (content.equals(HIDE_INFO)) {
-            mSmallView.setTextViewText(R.id.notification_title_hide, "show");
+            SPUtils.getInstance().put("is_showing", true);
+            mSmallView.setImageViewResource(R.id.notification_title_hide, R.drawable.show);
         } else {
-            mSmallView.setTextViewText(R.id.notification_title_hide, "hide");
+            SPUtils.getInstance().put("is_showing", false);
+            mSmallView.setImageViewResource(R.id.notification_title_hide, R.drawable.hide);
         }
         // 更新通知内容
         mSmallView.setTextViewText(R.id.notification_title, content);
@@ -147,19 +143,5 @@ public class NotificationHelper {
     public void hide() {
         App.getInstance().stopService(new Intent(App.getInstance(), NotificationService.class));
     }
-
-
-    public void startCountdownWithAlarm(Context context, long delayMillis) {
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, NotificationService.class);
-        intent.putExtra(HIDE_INFO, HIDE_INFO);
-        PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
-        alarmManager.cancel(pendingIntent);
-        alarmManager.set(AlarmManager.RTC_WAKEUP,
-                System.currentTimeMillis() + delayMillis, pendingIntent);
-    }
-
 
 }

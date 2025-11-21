@@ -54,20 +54,13 @@ public class AudioShowFG extends BaseOLFragment {
 
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        handler.removeCallbacks(runnable);
-        handler.removeCallbacksAndMessages(null);
-    }
 
     private void stop() {
         Log.e(TAG, "stop: ");
-        handler.removeCallbacks(runnable);
-        handler.removeCallbacksAndMessages(null);
         mBtnStart.setEnabled(true);
         currentIndex = -1;
-        addAllView();
+//        addAllView();
+        AudioHelper.getInstance().stopPlaying();
     }
 
     private void addAllView() {
@@ -95,22 +88,28 @@ public class AudioShowFG extends BaseOLFragment {
 
         if (currentIndex == audioBean.index) tv.setTextColor(Color.RED);
         if (currentIndex == audioBean.index) {
-            AudioHelper.getInstance().playAudio(audioBean.audioPath);
-            handler.postDelayed(() -> {
+            AudioHelper.getInstance().playAudio(audioBean.audioPath, (v) -> {
                 currentIndex++;
                 addAllView();
-            }, (long) audioBean.time * 60 * 1000);
+            });
         }
         LogControl.d("currentIndex=", currentIndex, "audioBean.index=", audioBean.index);
         if (currentIndex > 0 && currentIndex >= audioList.size()) {
-            toast("播放完成");
             LogControl.d("looping=", isLooping);
             if (isLooping) {
                 currentIndex = 0;
                 addAllView();
                 return;
+            } else {
+                toast("播放完成");
             }
             stop();
         }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        stop();
     }
 }

@@ -37,17 +37,16 @@ public class NotificationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         final String hideInfo = intent.getStringExtra(NotificationHelper.HIDE_INFO);
 
-        LogControl.d("hideInfo:" + hideInfo, "mIsShowing:" + NotificationHelper.mIsShowing);
+        LogControl.d("hideInfo:" + hideInfo);
         if (TextUtils.isEmpty(hideInfo)) {
             NotificationHelper.getInstance().changeContent(SPUtils.getInstance().getString(KEY_NOTE_CONTENT));
         } else if (hideInfo.equals(NotificationHelper.HIDE_INFO)) {
 
-            if (NotificationHelper.mIsShowing) {
+            final boolean isShowing = SPUtils.getInstance().getBoolean("is_showing", false);
+            if (isShowing) {
                 NotificationHelper.getInstance().changeContent(SPUtils.getInstance().getString(KEY_NOTE_CONTENT));
-                NotificationHelper.mIsShowing = false;
             } else {
                 NotificationHelper.getInstance().changeContent(hideInfo);
-                NotificationHelper.mIsShowing = true;
             }
 
         }

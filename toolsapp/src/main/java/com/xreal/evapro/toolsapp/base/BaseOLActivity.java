@@ -58,6 +58,22 @@ public abstract class BaseOLActivity extends Activity {
         return hasPrevActivity;
     }
 
+    private static final Map<Integer, IResult<Intent>> mActivityResultMap = new HashMap<>();
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+        LogControl.d("onActivityResult111", getClass().getSimpleName());
+        if (mActivityResultMap.containsKey(requestCode) && resultCode == RESULT_OK) {
+            mActivityResultMap.get(requestCode).onResult(data);
+            mActivityResultMap.remove(requestCode);
+        }
+    }
+
+    public static void setOnActivityResult(int requestCode, IResult<Intent> result) {
+        mActivityResultMap.put(requestCode, result);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -181,7 +197,7 @@ public abstract class BaseOLActivity extends Activity {
         }
 
         addLlView(button);
-
+        addLine();
         return button;
     }
 
@@ -317,7 +333,7 @@ public abstract class BaseOLActivity extends Activity {
         final View view = new View(llContent.getContext());
         final LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 2);
-        layoutParams.setMargins(20, 0, 20, 0);
+        layoutParams.setMargins(20, 0, 20, getBottomMargin());
         view.setLayoutParams(layoutParams);
         view.setBackgroundColor(Color.parseColor("#63999999"));
         llContent.addView(view);
@@ -379,6 +395,7 @@ public abstract class BaseOLActivity extends Activity {
         LinearLayout linearLayout = mLlHorizontalMap.get(index);
         if (linearLayout == null) {
             linearLayout = getHorizontalLlView(index);
+            addLine();
         }
         if (params == null) {
             params = new LinearLayout.LayoutParams(
