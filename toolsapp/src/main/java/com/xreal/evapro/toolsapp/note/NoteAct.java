@@ -27,6 +27,7 @@ public class NoteAct extends BaseOLActivity {
 
     public static final String KEY_NOTE_CONTENT = "KEY_NOTE_CONTENT";
     public static final String KEY_NOTE_CONTENT_2 = "KEY_NOTE_CONTENT_2";
+    public static final String KEY_NOTE_SHOW_IT = "KEY_NOTE_SHOW_IT";
 
 
     @Override
@@ -42,13 +43,16 @@ public class NoteAct extends BaseOLActivity {
         addButton("停止通知", 1, v -> {
             NotificationHelper.getInstance().hide();
         });
-        addButton("IT之家", 1, v -> new WebITHomeFG().setBaseParams("0").openFragment(getFragmentManager()));
+
+        if (SPUtils.getInstance().getBoolean("KEY_NOTE_SHOW_IT", false)) {
+            addButton("IT之家", 1, v -> new WebITHomeFG().setBaseParams("0").openFragment(getFragmentManager()));
+        }
 
 
         initNotificationET();
         addLine();
         initNoteET();
-
+        addLine();
 
     }
 
@@ -147,6 +151,11 @@ public class NoteAct extends BaseOLActivity {
                 final String string = editText.getText().toString();
                 LogControl.d("string:" + string);
                 SPUtils.getInstance().put(KEY_NOTE_CONTENT_2, string.trim());
+
+                if (!TextUtils.isEmpty(string) && string.contains("IT之家")) {
+                    SPUtils.getInstance().put("KEY_NOTE_SHOW_IT", true);
+                    toast("退出后显示 IT之家");
+                }
                 hideInputMethod(editText);
                 return false;
             }

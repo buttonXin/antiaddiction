@@ -26,7 +26,7 @@ public class AudioHelper {
     private static final String TAG = AudioHelper.class.getSimpleName();
 
     private AudioManager audioManager;
-    private int originalVolume;
+    private int originalVolume = -1;
     private int maxVolume;
     private static final String KEY_AUDIO_LIST = "audio_list";
     // 音频的分隔符
@@ -64,16 +64,18 @@ public class AudioHelper {
         try {
             // 创建临时文件
             this.outputPath = outputPath;
-            mediaRecorder = new MediaRecorder();
-            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            if (mediaPlayer == null) {
+                mediaRecorder = new MediaRecorder();
+                mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            }
             mediaRecorder.setOutputFile(outputPath);
             LogControl.d(TAG, "startRecording: " + outputPath);
 
             mediaRecorder.prepare();
             mediaRecorder.start();
-        } catch (IOException e) {
+        } catch (Exception e) {
             LogControl.d(TAG, "录音初始化失败", e);
             return false;
         }
@@ -82,9 +84,14 @@ public class AudioHelper {
 
     public String stopRecording(int time) {
         if (mediaRecorder != null) {
-            mediaRecorder.stop();
-            mediaRecorder.release();
-            mediaRecorder = null;
+            try {
+                mediaRecorder.stop();
+                mediaRecorder.release();
+                mediaRecorder = null;
+            } catch (Exception e) {
+                LogControl.d(" mediaRecorder.stop failed. ");
+            }
+
         }
         if (time <= 0) {
             return outputPath;
@@ -127,9 +134,13 @@ public class AudioHelper {
             stopPlaying();
         }
 
+        originalVolume = -1;
         if (filePath.contains(KEY_AUDIO_SPLIT)) {
             filePath = filePath.split(KEY_AUDIO_SPLIT)[1];
             LogControl.d(TAG, "playAudio: " + filePath);
+
+            // 保存当前音量
+            originalVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
 
             final float volume = SPUtils.getInstance().getFloat("volume", 0.7f);
             LogControl.d("volume", volume);
@@ -150,7 +161,9 @@ public class AudioHelper {
                 mediaPlayer.prepare();
                 mediaPlayer.setOnCompletionListener(mp -> {
                     // 播放结束后恢复音量
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalVolume, 0);
+                    if (originalVolume != -1) {
+                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalVolume, 0);
+                    }
                     stopPlaying();
                     if (iResult != null) {
                         iResult.onResult(null);
@@ -181,12 +194,10 @@ public class AudioHelper {
         try {
             if (mediaPlayer == null) {
                 mediaPlayer = new MediaPlayer();
-                mediaPlayer.setDataSource(context, uri);
+
                 mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_MEDIA)
                         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());
-
-                mediaPlayer.prepare();
                 mediaPlayer.setOnCompletionListener(mp -> {
                     stopPlaying();
                     if (iResult != null) {
@@ -194,8 +205,8 @@ public class AudioHelper {
                     }
                 });
             }
-
-
+            mediaPlayer.setDataSource(context, uri);
+            mediaPlayer.prepare();
             mediaPlayer.start();
         } catch (IOException e) {
             LogControl.d("AudioPlayer", "播放失败", e);
