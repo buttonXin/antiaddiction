@@ -482,14 +482,14 @@ public abstract class BaseOLFragment extends Fragment {
 
     public void addLlView(View view) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        params.bottomMargin = getBottomMargin();
-        params.leftMargin = getBottomMargin();
-        params.rightMargin = getBottomMargin();
         addLlView(view, params);
     }
 
     private void addLlView(View view, LinearLayout.LayoutParams params) {
-        params.bottomMargin = getBottomMargin();
+        params.bottomMargin = getBottomMargin() * 2;
+        params.leftMargin = getBottomMargin();
+        params.rightMargin = getBottomMargin();
+        params.topMargin = getBottomMargin();
         view.setLayoutParams(params);
         llContent.addView(view);
     }

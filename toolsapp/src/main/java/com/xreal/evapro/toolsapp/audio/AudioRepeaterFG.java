@@ -1,6 +1,7 @@
 package com.xreal.evapro.toolsapp.audio;
 
 import android.annotation.SuppressLint;
+import android.graphics.Color;
 import android.view.MotionEvent;
 import android.widget.Button;
 
@@ -52,16 +53,20 @@ public class AudioRepeaterFG extends BaseOLFragment {
                 case MotionEvent.ACTION_DOWN:
                     startTime = System.currentTimeMillis();
                     AudioHelper.getInstance().startRecording(absolutePath);
+                    mBtnTouch.setBackgroundColor(Color.parseColor("#7698BCD3"));
                     break;
                 case MotionEvent.ACTION_UP:
+                    mBtnTouch.setBackgroundColor(Color.parseColor("#FFFFFF"));
                     if (System.currentTimeMillis() - startTime < shortTime) {
                         LogControl.d(" 录音时间过短");
                         toast("录音时间过短(需大于1.5s)");
                         AudioHelper.getInstance().stopRecording(0);
                         break;
                     }
-                    AudioHelper.getInstance().stopRecording(0);
-                    AudioHelper.getInstance().playAudio(AudioHelper.getInstance().getOutputPath());
+                    handler.postDelayed(() -> {
+                        AudioHelper.getInstance().stopRecording(0);
+                        AudioHelper.getInstance().playAudio(AudioHelper.getInstance().getOutputPath());
+                    }, 500);
                     break;
             }
             return true;
