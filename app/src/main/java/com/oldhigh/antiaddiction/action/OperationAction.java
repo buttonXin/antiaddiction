@@ -20,12 +20,12 @@ import com.oldhigh.antiaddiction.App;
 import com.oldhigh.antiaddiction.bean.EventClick;
 import com.oldhigh.antiaddiction.feature.SpKey;
 import com.oldhigh.antiaddiction.util.LogControl;
-import com.oldhigh.antiaddiction.util.NotificationHelper;
 import com.oldhigh.antiaddiction.util.SPUtils;
 import com.ven.assists.service.AssistsService;
 import com.ven.assists.stepper.Step;
 import com.ven.assists.stepper.StepCollector;
 import com.ven.assists.stepper.StepImpl;
+import com.ven.assists.stepper.StepManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,10 +38,11 @@ import java.util.Set;
 public class OperationAction extends StepImpl {
     private static final String TAG = OperationAction.class.getSimpleName();
 
-    private static final int delay = 3000;
+    private static final int delay = 1500;
 
     private Map<Integer, EventClick> sActionMap = new HashMap<>();
     private String mNextOperation;
+    private long mNextOperationTime = 2000;
 
     private android.os.Handler handler = new android.os.Handler(Looper.getMainLooper());
 
@@ -62,15 +63,18 @@ public class OperationAction extends StepImpl {
             final List<EventClick> eventClicks;
             eventClicks = new Gson().fromJson(string, new TypeToken<List<EventClick>>() {
             }.getType());
+            long appStartDelay = 150;
             if (eventClicks != null) {
                 String pkgName = eventClicks.get(0).pkgName;
                 for (int i = 0; i < eventClicks.size(); i++) {
                     final EventClick eventClick = eventClicks.get(i);
                     if (i == 0) {
+                        appStartDelay = eventClick.delayTime;
                         continue;
                     }
                     if (!TextUtils.isEmpty(eventClick.nextOperation)) {
                         mNextOperation = eventClick.nextOperation;
+                        mNextOperationTime = eventClick.delayTime;
                     } else {
                         sActionMap.put(i + 1, eventClick);
                     }
@@ -79,7 +83,7 @@ public class OperationAction extends StepImpl {
                 openPkgApp(pkgName);
             }
 
-            return Step.Companion.get(2, OperationAction.class, null, delay);
+            return Step.Companion.get(2, OperationAction.class, null, appStartDelay);
         });
     }
 
@@ -90,18 +94,24 @@ public class OperationAction extends StepImpl {
                 final EventClick eventClick1 = sActionMap.get(step.getStep());
                 Log.e(TAG, " key =" + step.getStep() + "  " + eventClick1);
                 clickByNode(eventClick1.point);
-                return Step.Companion.get(step.getStep() + 1, OperationAction.class, null, delay);
+                long delayTime = eventClick1.delayTime;
+                if (delayTime <= 0) {
+                    delayTime = delay;
+                }
+                return Step.Companion.get(step.getStep() + 1, OperationAction.class, null, delayTime);
             });
         }
         stepCollector.next(sActionMap.size() + 2, true, (step, continuation) -> {
             Log.e(TAG, "onImpl:  step=" + step + "  mNextOperation= " + mNextOperation);
 
-            OtherAction.back();
-            handler.postDelayed(OtherAction::back, 500);
-            deleteUri();
+            if (isWXApp) {
+                OtherAction.back();
+                handler.postDelayed(OtherAction::back, 500);
+                deleteUri();
+            }
 
             if (!TextUtils.isEmpty(mNextOperation)) {
-                handler.postDelayed(() -> NotificationHelper.sendNotification(AssistsService.Companion.getInstance().getApplicationContext(), mNextOperation), 2000);
+                handler.postDelayed(() -> StepManager.INSTANCE.execute(OperationAction.class, 1, 100, mNextOperation, true), mNextOperationTime);
             }
             return Step.Companion.getNone();
         });
@@ -121,9 +131,14 @@ public class OperationAction extends StepImpl {
 
     }
 
+    private boolean isWXApp = false;
+
     private void openPkgApp(String pkgName) {
         if (TextUtils.isEmpty(pkgName)) {
             return;
+        }
+        if ("com.tencent.mm".equals(pkgName)) {
+            isWXApp = true;
         }
         final Context application = AssistsService.Companion.getInstance().getApplicationContext();
         final Intent intent = application.getPackageManager().getLaunchIntentForPackage(pkgName);

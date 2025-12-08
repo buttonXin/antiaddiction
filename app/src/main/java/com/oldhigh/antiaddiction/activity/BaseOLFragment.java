@@ -27,13 +27,15 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
+import com.oldhigh.antiaddiction.IResult;
 import com.oldhigh.antiaddiction.R;
 import com.oldhigh.antiaddiction.util.DensityUtil;
 import com.oldhigh.antiaddiction.util.LogControl;
 import com.oldhigh.antiaddiction.view.TextSwitchView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class BaseOLFragment extends Fragment {
@@ -47,6 +49,7 @@ public abstract class BaseOLFragment extends Fragment {
     public Activity mActivity;
     private View mDecorView;
     private OnDestroyListener mDestroyListener;
+    private IResult<Boolean> mIResult;
 
     // 距离下面view的边距
     public int getBottomMargin() {
@@ -177,6 +180,47 @@ public abstract class BaseOLFragment extends Fragment {
         return mFrameLayout;
     }
 
+    protected List<View> mLLViews = new ArrayList<>();
+    protected List<View> mLLHViews = new ArrayList<>();
+
+    /**
+     * 移除 正常view
+     */
+    protected void removeLLView() {
+        for (View llView : mLLViews) {
+            removeLLView(llView);
+        }
+        mLLViews.clear();
+    }
+
+    protected void removeLLView(View view) {
+        try {
+            llContent.removeView(view);
+        } catch (Exception e) {
+            LogControl.e(TAG, "removeView: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 移除横向view
+     */
+    protected void removeLLHView(int index) {
+
+        for (View llView : mLLHViews) {
+            removeLLHView(index, llView);
+        }
+        mLLHViews.clear();
+    }
+
+    protected void removeLLHView(int index, View view) {
+        try {
+            final LinearLayout linearLayout = mLlHorizontalMap.get(index);
+            linearLayout.removeView(view);
+        } catch (Exception e) {
+            LogControl.e(TAG, "removeView: " + e.getMessage());
+        }
+    }
+
     private void addBg() {
         ImageView view = new ImageView(mActivity);
 
@@ -226,6 +270,13 @@ public abstract class BaseOLFragment extends Fragment {
     public BaseOLFragment openFragment(FragmentManager fragmentManager) {
         fragmentManager.beginTransaction().add(android.R.id.content, this, this.getClass().getSimpleName())
                 .addToBackStack(this.getClass().getSimpleName()).commit();
+        return this;
+    }
+
+    public BaseOLFragment openFragment(FragmentManager fragmentManager, IResult<Boolean> iResult) {
+        fragmentManager.beginTransaction().add(android.R.id.content, this, this.getClass().getSimpleName())
+                .addToBackStack(this.getClass().getSimpleName()).commit();
+        mIResult = iResult;
         return this;
     }
 
@@ -518,6 +569,9 @@ public abstract class BaseOLFragment extends Fragment {
     public void onPause() {
         super.onPause();
         LogControl.d(TAG, "onPause: ");
+        if (mIResult != null) {
+            mIResult.onResult(true);
+        }
     }
 
     @Override

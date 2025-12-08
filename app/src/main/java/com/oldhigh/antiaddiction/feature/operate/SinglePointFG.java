@@ -49,7 +49,7 @@ public class SinglePointFG extends BaseOLFragment {
             SPUtils.getInstance().put(SpKey.KEY_POINT_list, strings);
             removeFragment();
         });
-        otherActions();
+
 
         addLine();
 
@@ -83,20 +83,32 @@ public class SinglePointFG extends BaseOLFragment {
                 text.append("\n");
             }
             mTextView.setText(text.toString());
+
+            // 如果最后一个操作为空, 则表示未添加其他操作组
+            if (TextUtils.isEmpty(eventClicks.get(eventClicks.size() - 1).nextOperation)) {
+                otherActions();
+            }
         }
     }
 
 
     private void otherActions() {
-        addText("执行结束后,执行其他操作组,填写名称");
-        final EditText editText = addEditText("结束后,执行其他操作,", 0);
-        addButton("保存", 0, v -> {
+        addLine();
+        addLine();
+        addText("本操作执行结束后,默认2000ms执行其他操作组,\n下面填写名称 , 只能填写一个!");
+        final EditText editText = addEditText("名称", 0);
+        final EditText editTextTime = addEditText("默认2000ms", 0);
+
+        mLLHViews.add(editText);
+        mLLHViews.add(editTextTime);
+        mLLHViews.add(addButton("保存", 0, v -> {
 
             final String otherOperation = editText.getText().toString();
             if (TextUtils.isEmpty(otherOperation)) {
                 toast("请填写其他操作组名称");
                 return;
             }
+            final long delayTime = TextUtils.isEmpty(editTextTime.getText().toString()) ? 2000 : Long.parseLong(editTextTime.getText().toString());
 
             final String string = SPUtils.getInstance().getString(mContent);
             LogControl.d("string:" + string);
@@ -108,11 +120,13 @@ public class SinglePointFG extends BaseOLFragment {
             }.getType());
             final EventClick eventClick = new EventClick();
             eventClick.nextOperation = otherOperation;
+            eventClick.delayTime = delayTime;
 
             eventClicks.add(eventClick);
             SPUtils.getInstance().put(mContent, new Gson().toJson(eventClicks));
             handler.postDelayed(this::getOperationText, 200);
-        });
+            removeLLHView(0);
+        }));
     }
 
 }

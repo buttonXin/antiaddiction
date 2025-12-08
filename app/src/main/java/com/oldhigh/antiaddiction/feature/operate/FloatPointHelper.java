@@ -110,7 +110,7 @@ public class FloatPointHelper {
         mEditTextName.setHint("操作名称");
         mEditTextName.setVisibility(View.GONE);
         mEditTextTime = new EditText(context);
-        mEditTextTime.setHint("多久执行下一个");
+        mEditTextTime.setHint("多少ms执行下一个,默认1500ms");
         mEditTextTime.setVisibility(View.GONE);
         // 只能输入数字
         mEditTextTime.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -274,13 +274,15 @@ public class FloatPointHelper {
 
         LogControl.d(" saveCoordinate: " + " " + x + " " + y);
 
-        final String name = mEditTextName.getText().toString();
+        String name = mEditTextName.getText().toString();
         final String timeStr = mEditTextTime.getText().toString();
-        final int time = Integer.parseInt(TextUtils.isEmpty(timeStr) ? "0" : timeStr);
+        int time = Integer.parseInt(TextUtils.isEmpty(timeStr) ? "0" : timeStr);
         LogControl.d(" saveCoordinate: " + name + " " + time);
-        if (name.isEmpty() || time <= 0) {
-            ToastUtils.show("请输入正确的数据");
-            return;
+        if (TextUtils.isEmpty(name)) {
+            name = "无";
+        }
+        if (time <= 0) {
+            time = 1500;
         }
         String string = SPUtils.getInstance().getString(mContent);
         final List<EventClick> eventClicks;

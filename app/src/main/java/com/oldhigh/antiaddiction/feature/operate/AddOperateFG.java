@@ -42,10 +42,11 @@ public class AddOperateFG extends BaseOLFragment {
                 "然后回车,打开对应的应用,点击开始,将点击应用功能的位置后,会显示一个红点\n" +
                 "点击保存后,就是自动化的第一步执行,然后 点击停止;\n" +
                 "再打开应用的功能位置的下一页, 再次开始, 点击下一次要操作的位置. 依次进行.\n" +
-                "最后点击结束.");
+                "最后点击结束.\n" +
+                "多少ms执行下一步,网路延迟会导致执行失败, 请根据实际情况写时间,尽量编写1000ms以上.");
         addLine();
         mEditText = addEditText("请先输入操作组名称");
-        mEditTextAppTime = addEditText("启动app后多少秒执行", 1);
+        mEditTextAppTime = addEditText("启动后多少ms执行", 1);
         mEditTextAppTime.setInputType(InputType.TYPE_CLASS_NUMBER);
         mSelectApp = addButton("选择启动的app", 1, v -> {
             final String content = mEditText.getText().toString().trim();
@@ -138,7 +139,7 @@ public class AddOperateFG extends BaseOLFragment {
                 text.append(
                         "第" + i + "步" + " " +
                                 (TextUtils.isEmpty(eventClicks.get(i).nickName) ? "" : "名称: " + eventClicks.get(i).nickName)
-                                + "  " + (eventClicks.get(i).delayTime == 0 ? "" : eventClicks.get(i).delayTime + "s")
+                                + "  " + (eventClicks.get(i).delayTime == 0 ? "" : eventClicks.get(i).delayTime + "ms")
                                 + (eventClicks.get(i).point == null ? "" : "  " + eventClicks.get(i).point)
                                 + (TextUtils.isEmpty(eventClicks.get(i).pkgName) ? "" : "  pkg=" + eventClicks.get(i).pkgName)
                                 + (TextUtils.isEmpty(eventClicks.get(i).nextOperation) ? "" : "  下一步执行:" + eventClicks.get(i).nextOperation)

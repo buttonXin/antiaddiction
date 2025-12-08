@@ -80,8 +80,7 @@ public class SelectAppFragment extends Fragment {
             holder.itemView.setOnClickListener(v -> {
                 if (mAppItemClickListener != null) {
                     mAppItemClickListener.onAppItemClick(packageInfo);
-                    getActivity().getFragmentManager().beginTransaction()
-                            .remove(SelectAppFragment.this).commit();
+                    getActivity().getFragmentManager().popBackStack();
                 }
             });
         }

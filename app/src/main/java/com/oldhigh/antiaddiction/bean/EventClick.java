@@ -21,7 +21,7 @@ public class EventClick {
      */
     public Point point;
     /**
-     * 等待时间
+     * 等待时间 ms
      */
     public long delayTime;
 
