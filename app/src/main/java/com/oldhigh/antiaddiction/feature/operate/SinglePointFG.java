@@ -1,7 +1,9 @@
 package com.oldhigh.antiaddiction.feature.operate;
 
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.widget.EditText;
+import android.widget.TextClock;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -34,6 +36,12 @@ public class SinglePointFG extends BaseOLFragment {
 
     @Override
     public void initData() {
+
+        TextClock mTextClock = new TextClock(getActivity());
+        mTextClock.setFormat24Hour("HH:mm:ss");
+        mTextClock.setTextColor(Color.BLACK);
+        addLlView(mTextClock);
+        addLine();
 
         addButton("执行操作组", v -> {
             StepManager.INSTANCE.execute(OperationAction.class, 1, 100, mContent, true);
