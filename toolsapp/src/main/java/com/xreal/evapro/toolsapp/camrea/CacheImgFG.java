@@ -108,8 +108,13 @@ public class CacheImgFG extends BaseOLFragment {
         ContentResolver contentResolver = mActivity.getContentResolver();
         for (String deleteUri : stringSet) {
             // 使用 ContentResolver 删除 MediaStore 中的条目
-            int rowsAffected = contentResolver.delete(Uri.parse(deleteUri), null, null);
-            LogControl.d("rowsAffected", rowsAffected);
+            try {
+                int rowsAffected = contentResolver.delete(Uri.parse(deleteUri), null, null);
+                LogControl.d("rowsAffected", rowsAffected);
+            }catch (Exception e){
+                LogControl.d(" delete error", e);
+            }
+
         }
 
         SPUtils.getInstance().put("share_img", new HashSet<>());

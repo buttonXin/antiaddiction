@@ -26,6 +26,7 @@ public class MagnifierShowFG extends BaseOLFragment {
     private int textSize = 20;
     private TextView mTextView;
     private EditText mEditText;
+    private Button mBtn;
 
     @Override
     protected void addTitleBar(String text) {
@@ -79,7 +80,7 @@ public class MagnifierShowFG extends BaseOLFragment {
     private void addBottom() {
         LinearLayout llView = new LinearLayout(getActivity());
         llView.setOrientation(LinearLayout.HORIZONTAL);
-        llView.setGravity(Gravity.END | Gravity.BOTTOM);
+        llView.setGravity(Gravity.END | Gravity.TOP);
         addFullscreenView(llView);
 
 
@@ -94,34 +95,52 @@ public class MagnifierShowFG extends BaseOLFragment {
         mEditText.setBackgroundColor(Color.TRANSPARENT);
 
         // 监听键盘的完成事件
-        mEditText.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                mEditText.setVisibility(View.GONE);
-                final String string = mEditText.getText().toString();
-                LogControl.d("string:" + string);
-                mTextView.setText(string);
-                return false;
-            }
-            return false;
-        });
+//        mEditText.setOnEditorActionListener((v, actionId, event) -> {
+//            if (actionId == EditorInfo.IME_ACTION_DONE) {
+//                showFullText();
+//                return false;
+//            }
+//            return false;
+//        });
 
 
         mEditText.postDelayed(() -> showInputTips(mEditText), 200);
 
 
-        Button button2 = new Button(mActivity);
-        button2.setText("  输入  ");
-        button2.setAllCaps(false);
-        button2.setOnClickListener(v -> {
+        mBtn = new Button(mActivity);
+        mBtn.setText("显示");
+        mBtn.setAllCaps(false);
+        mBtn.setTextSize(DensityUtil.dip2px(10));
+        mBtn.setBackgroundColor(Color.TRANSPARENT);
+        mBtn.setOnClickListener(v -> {
 
-            showInputTips(mEditText);
+//            showInputTips(mEditText);
+
+            if (mBtn.getText().toString().equals("显示")) {
+                showFullText();
+                mBtn.setText("输入");
+            } else if (mBtn.getText().toString().equals("输入")) {
+                showInputTips(mEditText);
+                mBtn.setText("显示");
+            }
+
         });
         final LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         btnParams.rightMargin = getBottomMargin() * 2;
-        btnParams.bottomMargin = 30;
+        btnParams.bottomMargin = getBottomMargin() * 2;
+        btnParams.topMargin = getBottomMargin() * 2;
+
+
         llView.addView(mEditText, 0, etParams);
-        llView.addView(button2, 1, btnParams);
+        llView.addView(mBtn, 1, btnParams);
+    }
+
+    private void showFullText() {
+        mEditText.setVisibility(View.GONE);
+        final String string = mEditText.getText().toString();
+        LogControl.d("string:" + string);
+        mTextView.setText(string);
     }
 
     private void showInputTips(EditText et_text) {
