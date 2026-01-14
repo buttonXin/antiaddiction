@@ -11,7 +11,7 @@ android {
         minSdk 29
         targetSdk 33
         versionCode 24
-        versionName "1.6.2"
+        versionName "1.7.1"
         archivesBaseName = "toosapp-" + defaultConfig.versionName + '-' + defaultConfig.versionCode + '-' + (new Date().format("yyyy-MMdd-HHmm"))
         buildConfigField 'String', 'impl_info', "\"$defaultConfig.versionName-$defaultConfig.versionCode-${(new Date().format("yyyy-MMdd-HHmm"))}\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -62,5 +62,8 @@ dependencies {
 
     // 嵌入式HTTP服务器
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
+
+    // 使用m3u8播放
+    implementation "com.google.android.exoplayer:exoplayer:2.19.1"
 
 }

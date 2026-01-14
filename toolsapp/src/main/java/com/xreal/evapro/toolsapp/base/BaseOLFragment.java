@@ -325,6 +325,8 @@ public abstract class BaseOLFragment extends Fragment {
         view.setTextColor(isBlackScreen() ? Color.WHITE : Color.BLACK);
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         view.setAllCaps(false);
+        // 启用文本选择和复制
+        view.setTextIsSelectable(true);
         if (listener != null) {
             view.setOnClickListener(v -> {
                 LogControl.d(TAG, name + " onClick: ");

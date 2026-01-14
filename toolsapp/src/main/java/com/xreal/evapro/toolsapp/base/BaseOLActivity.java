@@ -43,6 +43,7 @@ public abstract class BaseOLActivity extends Activity {
 
     protected Handler handler = new Handler(Looper.getMainLooper());
     private FrameLayout mFrameLayout;
+    private View mDecorView;
 
     // 距离下面view的边距
     public int getBottomMargin() {
@@ -74,6 +75,10 @@ public abstract class BaseOLActivity extends Activity {
         mActivityResultMap.put(requestCode, result);
     }
 
+    protected boolean hasFullScreen() {
+        return false;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +86,20 @@ public abstract class BaseOLActivity extends Activity {
 
         LogControl.d("onCreate", getClass().getSimpleName());
         hasPrevActivity = !TextUtils.isEmpty(getIntent().getStringExtra(PREV));
+
+        if (hasFullScreen()) {
+            mDecorView = getWindow().getDecorView();
+            fullScreen();
+            // 设置监听系统 UI 可见性变化
+            mDecorView.setOnSystemUiVisibilityChangeListener(visibility -> {
+                boolean isFullscreen = (visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) != 0;
+                if (!isFullscreen) {
+                    // 用户下拉状态栏后延迟再次隐藏
+                    handler.postDelayed(this::fullScreen, 3000);
+                }
+            });
+        }
+
         // 状态栏 通知栏颜色反转
 //        int statusFlag = -1;
 //        int navigationFlag = -1;
@@ -118,20 +137,46 @@ public abstract class BaseOLActivity extends Activity {
         mFrameLayout.addView(scrollView, 0);
         mFrameLayout.setBackgroundColor(Color.WHITE);
         setContentView(mFrameLayout);
-        addBg();
+        addBg(0);
 
         initData();
     }
 
-    private void addBg() {
-        ImageView view = new ImageView(this);
+    /**
+     * 沉浸式全屏
+     */
+    private void fullScreen() {
 
-        view.setImageDrawable(getDrawable(R.drawable.ol_bg));
+        // Hide the status bar.
+        // Hide the navigation bar.
+        int uiOptions = View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+
+        if (mDecorView != null) {
+            mDecorView.setSystemUiVisibility(uiOptions);
+        }
+
+    }
+
+    protected void addBg(int color) {
+        View view;
+        if (color == 0) {
+            view = new ImageView(this);
+            ((ImageView) view).setImageDrawable(getDrawable(R.drawable.ol_bg));
+            ((ImageView) view).setScaleType(ImageView.ScaleType.FIT_XY);
+        } else {
+            view = new View(this);
+            view.setBackgroundColor(color);
+        }
+
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT);
         view.setLayoutParams(params);
-        view.setScaleType(ImageView.ScaleType.FIT_XY);
         mFrameLayout.addView(view, 0);
     }
 

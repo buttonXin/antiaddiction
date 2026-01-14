@@ -22,6 +22,7 @@ import com.xreal.evapro.toolsapp.note.NoteAct;
 import com.xreal.evapro.toolsapp.util.DensityUtil;
 import com.xreal.evapro.toolsapp.util.LogControl;
 import com.xreal.evapro.toolsapp.util.SPUtils;
+import com.xreal.evapro.toolsapp.video.HomeVideoFG;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,6 +53,7 @@ public class MainActivity extends BaseOLActivity {
         btnCamera2 = addButton("前置摄像头", 2, v -> new CameraPreviewFG().setBaseParams("1").openFragment(getFragmentManager()));
         btnAudio = addButton("语音功能", v -> new AudioParentFG().openFragment(getFragmentManager()));
         btnMagnifier = addButton("放大镜", v -> new MagnifierShowFG().openFragment(getFragmentManager()));
+        btnMagnifier = addButton("视频功能", v -> new HomeVideoFG().openFragment(getFragmentManager()));
 
         showHide();
 
