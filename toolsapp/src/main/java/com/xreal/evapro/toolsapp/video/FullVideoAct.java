@@ -4,8 +4,15 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -14,10 +21,14 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+import com.xreal.evapro.toolsapp.R;
 import com.xreal.evapro.toolsapp.base.BaseOLActivity;
+import com.xreal.evapro.toolsapp.util.DensityUtil;
 import com.xreal.evapro.toolsapp.util.LogControl;
 
 public class FullVideoAct extends BaseOLActivity {
+
+    private Button mFullBtn;
 
     @Override
     protected boolean hasFullScreen() {
@@ -48,6 +59,68 @@ public class FullVideoAct extends BaseOLActivity {
             new VideoDoubleTapHelper(playerView, player);
         });
 
+        // 添加点击监听器显示按钮
+        playerView.setOnClickListener(v -> {
+            showFullscreenButton();
+        });
+
+        addBottom();
+
+
+    }
+
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private Runnable hideButtonRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (mFullBtn != null) {
+                mFullBtn.setVisibility(View.GONE);
+            }
+        }
+    };
+
+    /**
+     * 显示全屏按钮并设置2秒后自动隐藏
+     */
+    private void showFullscreenButton() {
+        if (mFullBtn != null) {
+            mFullBtn.setVisibility(View.VISIBLE);
+            // 移除之前的隐藏任务，防止重复执行
+            handler.removeCallbacks(hideButtonRunnable);
+            // 2秒后自动隐藏按钮
+            handler.postDelayed(hideButtonRunnable, 2000);
+        }
+    }
+
+    private void addBottom() {
+
+        mFullBtn = new Button(this);
+        mFullBtn.setText("[ 全屏 ]");
+        mFullBtn.setAllCaps(false);
+        mFullBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        mFullBtn.setAllCaps(false);
+        mFullBtn.setBackgroundResource(R.drawable.button_selector);
+        int padding = DensityUtil.dip2px(10);
+        mFullBtn.setPadding(padding, padding, padding, padding);
+        mFullBtn.setOnClickListener(v -> {
+            int currentOrientation = this.getResources().getConfiguration().orientation;
+
+            if (currentOrientation == android.content.res.Configuration.ORIENTATION_PORTRAIT) {
+                // 当前是竖屏，切换到横屏
+                enterFullscreen();
+            } else {
+                // 当前是横屏，切换到竖屏
+                exitFullscreen();
+            }
+
+        });
+        final FrameLayout.LayoutParams btnParams = new FrameLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnParams.rightMargin = getBottomMargin();
+        btnParams.bottomMargin = 30;
+        btnParams.gravity = Gravity.END | Gravity.BOTTOM;
+        mFullBtn.setLayoutParams(btnParams);
+        addFullscreenView(mFullBtn);
 
     }
 
@@ -116,8 +189,7 @@ public class FullVideoAct extends BaseOLActivity {
     }
 
     private void exitFullscreen() {
-        this.setRequestedOrientation(
-                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         this.getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_VISIBLE);
@@ -139,6 +211,10 @@ public class FullVideoAct extends BaseOLActivity {
         if (player != null) {
             player.release();
             player = null;
+        }
+        // 清理Handler回调，防止内存泄漏
+        if (handler != null) {
+            handler.removeCallbacks(hideButtonRunnable);
         }
     }
 
