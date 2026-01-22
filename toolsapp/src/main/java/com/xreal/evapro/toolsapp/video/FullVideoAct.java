@@ -29,6 +29,7 @@ import com.xreal.evapro.toolsapp.util.LogControl;
 public class FullVideoAct extends BaseOLActivity {
 
     private Button mFullBtn;
+    private String mM3u8Url;
 
     @Override
     protected boolean hasFullScreen() {
@@ -37,8 +38,7 @@ public class FullVideoAct extends BaseOLActivity {
 
     private SimpleExoPlayer player;
     private PlayerView playerView;
-    private static final String M3U8_URL =
-            "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
+    private static final String M3U8_URL = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
 
     @Override
     protected void addBg(int color) {
@@ -63,6 +63,7 @@ public class FullVideoAct extends BaseOLActivity {
         playerView.setOnClickListener(v -> {
             showFullscreenButton();
         });
+        playerView.setKeepScreenOn(true);
 
         addBottom();
 
@@ -114,8 +115,7 @@ public class FullVideoAct extends BaseOLActivity {
             }
 
         });
-        final FrameLayout.LayoutParams btnParams = new FrameLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        final FrameLayout.LayoutParams btnParams = new FrameLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         btnParams.rightMargin = getBottomMargin();
         btnParams.bottomMargin = 30;
         btnParams.gravity = Gravity.END | Gravity.BOTTOM;
@@ -158,19 +158,24 @@ public class FullVideoAct extends BaseOLActivity {
     }
 
     private void initPlayer() {
+        if (player != null) {
+            player.release();
+            player = null;
+        }
+        // 清理Handler回调，防止内存泄漏
+        if (handler != null) {
+            handler.removeCallbacks(hideButtonRunnable);
+        }
+
         player = new SimpleExoPlayer.Builder(this).build();
         playerView.setPlayer(player);
 
-        DefaultHttpDataSource.Factory factory =
-                new DefaultHttpDataSource.Factory()
-                        .setAllowCrossProtocolRedirects(true)
-                        .setUserAgent("Mozilla/5.0");
+        DefaultHttpDataSource.Factory factory = new DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true).setUserAgent("Mozilla/5.0");
 
-        MediaItem mediaItem = MediaItem.fromUri(getM3u8Url());
+        mM3u8Url = getM3u8Url();
+        MediaItem mediaItem = MediaItem.fromUri(mM3u8Url);
 
-        MediaSource mediaSource =
-                new DefaultMediaSourceFactory(factory)
-                        .createMediaSource(mediaItem);
+        MediaSource mediaSource = new DefaultMediaSourceFactory(factory).createMediaSource(mediaItem);
 
         player.setMediaSource(mediaSource);
         player.prepare();
@@ -179,22 +184,34 @@ public class FullVideoAct extends BaseOLActivity {
 
 
     private void enterFullscreen() {
-        this.setRequestedOrientation(
-                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 
-        this.getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        this.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
     private void exitFullscreen() {
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        this.getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_VISIBLE);
+        this.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (TextUtils.isEmpty(mM3u8Url)) {
+            return;
+        }
+        // Denying clipboard access to com.oldhigh.toolsapp, application is not in focus nor is it a system service for user 0
+        // 延时执行
+        handler.postDelayed(() -> {
+            final String clipContent = getClipContent();
+            LogControl.d( "clipContent: " + clipContent);
+            if (!mM3u8Url.equals(clipContent)) {
+                initPlayer();
+            }
+        },1000);
+
+    }
 
     @Override
     public void onPause() {
