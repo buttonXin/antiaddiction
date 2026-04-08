@@ -50,14 +50,42 @@ android {
 
 dependencies {
 
+    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
+
     implementation 'com.github.getActivity:ToastUtils:10.0'
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
-    //基础库（必须）
-    implementation "com.github.ven-coder.Assists:assists-base:v3.2.201"
+    //基础库（必须） 转为aar移入到项目根目录的libs文件夹下的
+//    implementation "com.github.ven-coder.Assists:assists-base:v3.2.220"
 
     implementation 'com.google.code.gson:gson:2.9.0'
+}
+
+tasks.register('copyAllDependencies', Copy) {
+    // 1. 定义目标依赖
+    def targetDependency = "com.github.ven-coder.Assists:assists-base:v3.2.220"
+
+    // 2. 创建脱离主流程的解析配置
+    def resolvableConf = configurations.detachedConfiguration(
+            dependencies.create(targetDependency)
+    )
+    resolvableConf.canBeResolved = true
+    resolvableConf.transitive = true // 确保包含传递性依赖
+
+    // 3. 复制所有关联的文件
+    from resolvableConf
+    into "${layout.buildDirectory.get().asFile}/outputs/all_dependencies/"
+
+    doFirst {
+        println "🚀 开始解析 ${targetDependency} 的所有依赖..."
+    }
+
+    doLast {
+        println "✅ 提取完成！"
+        println "📂 文件存放路径: ${layout.buildDirectory.get().asFile}/outputs/all_dependencies/"
+        println "⚠️ 请注意：你需要将这里的所有文件都放入 libs 文件夹，并在 build.gradle 中引用它们。"
+    }
 }
