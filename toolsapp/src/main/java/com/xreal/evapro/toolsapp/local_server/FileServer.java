@@ -5,7 +5,14 @@ import android.os.Environment;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -23,6 +30,22 @@ public class FileServer extends NanoHTTPD {
         this(port, context, false);
     }
 
+    // 页面公共头部：字体放大，方便其他设备上的用户阅读
+    private static final String PAGE_HEAD =
+            "<head><meta charset=\"UTF-8\">" +
+                    "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
+                    "<style>" +
+                    "html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}" +
+                    "body{font-size:22px;font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;}" +
+                    "textarea{font-size:14px;width:100%;max-width:640px;min-height:40px;box-sizing:border-box;}" +
+                    "input[type=file]{font-size:16px;width:100%;max-width:640px;display:block;box-sizing:border-box;padding:8px 0;}" +
+                    "input[type=submit]{font-size:16px;width:100%;max-width:640px;display:block;box-sizing:border-box;padding:8px 14px;}" +
+                    "a{font-size:22px;}" +
+                    "ul{line-height:1.6;}" +
+                    ".hint{font-size:20px;color:#555;margin:0 0 10px;}" +
+                    ".row{margin:10px 0;}" +
+                    "</style></head>";
+
     @Override
     public Response serve(IHTTPSession session) {
         String uri = session.getUri();
@@ -33,6 +56,12 @@ public class FileServer extends NanoHTTPD {
         rootDirectory = Environment.getExternalStorageDirectory(); // Android 10 或更低版本
 
         final File downloadFile = new File(rootDirectory, "Download");
+
+        // 上传：文件统一保存到 Download 目录
+        if (Method.POST.equals(session.getMethod())) {
+            return handleUpload(session, downloadFile);
+        }
+
         File targetFile;
         if (isOnlyDownload) {
             targetFile = new File(downloadFile, uri);
@@ -47,8 +76,21 @@ public class FileServer extends NanoHTTPD {
 
         if (targetFile.isDirectory()) {
             // 如果是目录，返回文件列表
-            StringBuilder response = new StringBuilder("<html><body>");
+            StringBuilder response = new StringBuilder("<html>" + PAGE_HEAD + "<body>");
             response.append("<h1>File Browser</h1>");
+            // 上传表单只在首页(/)显示；子目录仅浏览/下载
+            if ("/".equals(uri)) {
+                response.append("<form method=\"POST\" enctype=\"multipart/form-data\">");
+                response.append("<p class=\"hint\">说明: 选择文件、输入文字后，点击上传到 Download 目录, 即可在\"发起端\"收到</p>");
+                response.append("<div class=\"row\"><textarea name=\"text\" rows=\"2\" cols=\"40\" placeholder=\"在此输入文字，将保存为时间戳命名的 .txt文件\"></textarea></div>");
+                response.append("<div class=\"row\"><input type=\"file\" name=\"file\" multiple></div>");
+                response.append("<div class=\"row\"><input type=\"submit\" value=\"上传到 Download 目录\"></div>");
+                response.append("</form>");
+                // 分割线 + 下载说明
+                response.append("<hr>");
+                response.append("<hr>");
+                response.append("<p class=\"hint\">选择下面的文件夹内容即可下载\"发起端\"的文件</p>");
+            }
             response.append("<ul>");
             for (File file : targetFile.listFiles()) {
                 String fileName = file.getName();
@@ -57,7 +99,7 @@ public class FileServer extends NanoHTTPD {
             }
             response.append("</ul>");
             response.append("</body></html>");
-            return newFixedLengthResponse(Response.Status.OK, "text/html", response.toString());
+            return newFixedLengthResponse(Response.Status.OK, "text/html; charset=UTF-8", response.toString());
         } else {
             // 如果是文件，返回文件内容
             try {
@@ -66,6 +108,126 @@ public class FileServer extends NanoHTTPD {
                 return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, "text/plain", "500 Internal Server Error");
             }
         }
+    }
+
+    /**
+     * 处理 POST 上传：把上传的文件保存到 Download 目录。
+     */
+    private Response handleUpload(IHTTPSession session, File downloadDir) {
+        Map<String, String> files = new HashMap<>();
+        try {
+            // 浏览器/curl 上传 multipart 时通常不带 charset 参数，NanoHTTPD 会退回用
+            // US-ASCII 解码 multipart 头部，导致非 ASCII 文件名被替换成 �。
+            // 这里在解析前补上 charset=UTF-8，让 NanoHTTPD 按 UTF-8 解码头部，保留原始文件名。
+            Map<String, String> headers = session.getHeaders();
+            String contentType = headers.get("content-type");
+            if (contentType != null && !contentType.toLowerCase(Locale.US).contains("charset=")) {
+                headers.put("content-type", contentType + "; charset=UTF-8");
+            }
+            session.parseBody(files);
+        } catch (IOException | ResponseException e) {
+            return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, "text/html; charset=UTF-8",
+                    buildResultHtml("上传失败", "解析上传内容出错: " + e.getMessage(), session.getUri()));
+        }
+
+        StringBuilder savedNames = new StringBuilder();
+
+        // 文本输入：内容原封不动，保存为时间戳命名的 txt（yyyy-MM-dd-HH-mm-ss）
+        String text = session.getParms().get("text");
+        if (text != null && !text.isEmpty()) {
+            String txtName = new SimpleDateFormat("文本-yyyy-MM-dd-HH-mm-ss", Locale.US).format(new Date()) + ".txt";
+            try {
+                writeTextFile(new File(downloadDir, txtName), text);
+                savedNames.append(escapeHtml(txtName)).append("<br>");
+            } catch (IOException e) {
+                savedNames.append(escapeHtml(txtName)).append(" (保存失败: ").append(escapeHtml(e.getMessage())).append(")<br>");
+            }
+        }
+
+        for (Map.Entry<String, String> entry : files.entrySet()) {
+            String field = entry.getKey();
+            String tempPath = entry.getValue();
+            // 跳过原始 POST/PUT 数据等非文件字段
+            if ("postData".equals(field) || "content".equals(field)) {
+                continue;
+            }
+            String originalName = session.getParms().get(field);
+            String fileName = sanitizeFileName(originalName);
+            if (fileName == null) {
+                continue;
+            }
+            try {
+                copyFile(new File(tempPath), new File(downloadDir, fileName));
+                savedNames.append(escapeHtml(fileName)).append("<br>");
+            } catch (IOException e) {
+                savedNames.append(escapeHtml(fileName)).append(" (保存失败: ").append(escapeHtml(e.getMessage())).append(")<br>");
+            }
+        }
+
+        if (savedNames.length() == 0) {
+            return newFixedLengthResponse(Response.Status.BAD_REQUEST, "text/html; charset=UTF-8",
+                    buildResultHtml("上传失败", "未接收到有效文件或文本", session.getUri()));
+        }
+        return newFixedLengthResponse(Response.Status.OK, "text/html; charset=UTF-8",
+                buildResultHtml("上传成功", savedNames.toString(), session.getUri()));
+    }
+
+    /**
+     * 净化上传文件名：只保留最后一段路径，拒绝空名 / "." / ".."，防止路径穿越。
+     */
+    private String sanitizeFileName(String name) {
+        if (name == null) {
+            return null;
+        }
+        String base = name;
+        int slash = Math.max(base.lastIndexOf('/'), base.lastIndexOf('\\'));
+        if (slash >= 0) {
+            base = base.substring(slash + 1);
+        }
+        base = base.trim();
+        if (base.isEmpty() || ".".equals(base) || "..".equals(base)) {
+            return null;
+        }
+        return base;
+    }
+
+    /**
+     * 流式拷贝文件。不用 renameTo：临时文件在应用缓存，目标是外置存储，跨文件系统 renameTo 不可靠。
+     */
+    private void copyFile(File src, File dest) throws IOException {
+        try (FileInputStream in = new FileInputStream(src);
+             FileOutputStream out = new FileOutputStream(dest)) {
+            byte[] buffer = new byte[8192];
+            int n;
+            while ((n = in.read(buffer)) > 0) {
+                out.write(buffer, 0, n);
+            }
+        }
+    }
+
+    /**
+     * 把文本原封不动地以 UTF-8 写入文件。
+     */
+    private void writeTextFile(File dest, String content) throws IOException {
+        try (FileOutputStream out = new FileOutputStream(dest)) {
+            out.write(content.getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    private String buildResultHtml(String title, String content, String uri) {
+        return "<html>" + PAGE_HEAD + "<body><h1>" + title + "</h1><p>" + content + "</p>" +
+                "<a href=\"" + uri + "\">返回目录</a></body></html>";
+    }
+
+    /**
+     * 转义 HTML 特殊字符，防止文件名等动态内容破坏页面结构。
+     */
+    private String escapeHtml(String s) {
+        if (s == null) {
+            return "";
+        }
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                .replace("\"", "&quot;").replace("'", "&#39;");
     }
 }
 

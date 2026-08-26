@@ -108,6 +108,7 @@ public class LocalServerFG extends BaseOLFragment {
             mTextView.setText("浏览器输入: " + localIpAddress +
                     "\n或者扫描二维码" +
                     "\n即可再相同网络下,下载手机的所有文件;" +
+                    "\n其他设备也可通过页面上的表单向 Download 目录上传文件;" +
                     "\n需要保证当前应用一直在前台!!!");
             mTextView.setKeepScreenOn(true);
         } catch (IOException e) {
