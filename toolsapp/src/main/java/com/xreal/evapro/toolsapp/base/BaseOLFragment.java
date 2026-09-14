@@ -318,6 +318,23 @@ public abstract class BaseOLFragment extends Fragment {
         return addText(name, null);
     }
 
+    /**
+     * 与 addText 相同,但不追加下面的分割线。
+     * 用于需要和下一行紧挨着显示、中间不要分割线的场景。
+     */
+    public TextView addTextNoLine(String name) {
+        TextView view = new TextView(llContent.getContext());
+
+        view.setText(name);
+        view.setTextColor(isBlackScreen() ? Color.WHITE : Color.BLACK);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        view.setAllCaps(false);
+        // 启用文本选择和复制
+        view.setTextIsSelectable(true);
+        addLlView(view);
+        return view;
+    }
+
     public TextView addText(String name, int index) {
 
         return addText(name, index, null);

@@ -32,7 +32,7 @@ public class CopyClipToFileFG extends BaseOLFragment {
 
 
         mEditText = addEditText("请输入内容");
-        final String paste = getClipContent();
+        final String paste = getClipContent(getContext());
         if (!TextUtils.isEmpty(paste)) {
             mEditText.setText(paste);
         }
@@ -57,8 +57,8 @@ public class CopyClipToFileFG extends BaseOLFragment {
     /**
      * 获取剪切板的内容
      */
-    public String getClipContent() {
-        ClipboardManager manager = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+    public static String getClipContent(Context context) {
+        ClipboardManager manager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         if (manager != null) {
             if (manager.hasPrimaryClip() && manager.getPrimaryClip().getItemCount() > 0) {
                 CharSequence addedText = manager.getPrimaryClip().getItemAt(0).getText();

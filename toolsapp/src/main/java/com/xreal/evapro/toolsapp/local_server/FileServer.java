@@ -15,6 +15,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -26,32 +28,58 @@ public class FileServer extends NanoHTTPD {
     private final String passwordHash;
     // 由密码哈希派生的会话令牌;密码设置后,浏览器验证通过便凭此 cookie 免重复输入
     private final String authToken;
+    // 网页最上方的提示内容;每次请求实时获取,所以改内容后刷新网页即可看到
+    private final Supplier<String> noticeSupplier;
+    // 网页端点"发送到手机"时回调,把文字交给界面显示;在服务器线程调用,界面需自行切回主线程
+    private final Consumer<String> textReceiver;
+    // 最近一次网页端发来的文字;没接回调时也可通过 getLastPushedText() 拿到
+    private volatile String lastPushedText = "";
 
     private static final String AUTH_COOKIE = "fs_auth";
     private static final String AUTH_TOKEN_SALT = "::local_server_session::";
 
-    public FileServer(int port, Context context, boolean isOnlyDownload, String passwordHash) {
+    public FileServer(int port, Context context, boolean isOnlyDownload, String passwordHash,
+                      Supplier<String> noticeSupplier, Consumer<String> textReceiver) {
         super(port);
         this.context = context;
         this.isOnlyDownload = isOnlyDownload;
         this.passwordHash = passwordHash;
+        this.noticeSupplier = noticeSupplier;
+        this.textReceiver = textReceiver;
         this.authToken = (passwordHash == null || passwordHash.isEmpty())
                 ? null
                 : sha256Hex(passwordHash + AUTH_TOKEN_SALT);
     }
 
+    public FileServer(int port, Context context, boolean isOnlyDownload, String passwordHash,
+                      Supplier<String> noticeSupplier) {
+        this(port, context, isOnlyDownload, passwordHash, noticeSupplier, null);
+    }
+
+    public FileServer(int port, Context context, boolean isOnlyDownload, String passwordHash) {
+        this(port, context, isOnlyDownload, passwordHash, null, null);
+    }
+
     public FileServer(int port, Context context, boolean isOnlyDownload) {
-        this(port, context, isOnlyDownload, null);
+        this(port, context, isOnlyDownload, null, null, null);
     }
 
     public FileServer(int port, Context context) {
-        this(port, context, false, null);
+        this(port, context, false, null, null, null);
+    }
+
+    /**
+     * 最近一次网页端"发送到手机"的文字;没有则为空串。
+     */
+    public String getLastPushedText() {
+        return lastPushedText;
     }
 
     // 页面公共头部：字体放大，方便其他设备上的用户阅读
     private static final String PAGE_HEAD =
             "<head><meta charset=\"UTF-8\">" +
                     "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
+                    "<title>快捷分享</title>" +
                     "<style>" +
                     "html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}" +
                     "body{font-size:22px;font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;}" +
@@ -63,6 +91,15 @@ public class FileServer extends NanoHTTPD {
                     "ul{line-height:1.6;}" +
                     ".hint{font-size:20px;color:#555;margin:0 0 10px;}" +
                     ".row{margin:10px 0;}" +
+                    ".notice{font-size:22px;background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:10px 12px;margin:0 0 14px;white-space:pre-wrap;word-break:break-word;}" +
+                    // 输入框与"发送到手机"并排:输入框自适应占满剩余宽度,按钮保持自身宽度
+                    ".push-row{display:flex;align-items:stretch;gap:10px;max-width:640px;}" +
+                    ".push-row textarea{flex:1 1 auto;min-width:0;}" +
+                    ".push-row input[type=submit]{flex:0 0 auto;width:auto;max-width:none;}" +
+                    // 说明文字与"复制"按钮同一行
+                    ".notice-head{display:flex;align-items:center;gap:10px;max-width:640px;}" +
+                    ".notice-head .hint{margin:0;}" +
+                    ".copy-btn{font-size:16px;padding:4px 14px;cursor:pointer;}" +
                     "</style></head>";
 
     @Override
@@ -80,6 +117,10 @@ public class FileServer extends NanoHTTPD {
         if (Method.POST.equals(session.getMethod())) {
             if ("/login".equals(uri)) {
                 return handleLogin(session);
+            }
+            // 只把文字送到手机显示,不落文件
+            if ("/push".equals(uri)) {
+                return handlePush(session);
             }
             return handleUpload(session, downloadFile);
         }
@@ -128,12 +169,21 @@ public class FileServer extends NanoHTTPD {
      */
     private Response renderDirectoryPage(IHTTPSession session, String uri, File targetFile) {
         StringBuilder response = new StringBuilder("<html>" + PAGE_HEAD + "<body>");
-        response.append("<h1>File Browser</h1>");
+        response.append("<h1>快捷分享</h1>");
+        // 动态提示紧跟在标题下面
+        appendNotice(response);
         // 上传表单只在首页(/)显示；子目录仅浏览/下载
         if ("/".equals(uri)) {
             response.append("<form method=\"POST\" enctype=\"multipart/form-data\">");
-            response.append("<p class=\"hint\">说明: 选择文件、输入文字后，点击上传到 Download 目录, 即可在\"发起端\"收到</p>");
-            response.append("<div class=\"row\"><textarea name=\"text\" rows=\"2\" cols=\"40\" placeholder=\"在此输入文字，将保存为时间戳命名的 .txt文件\"></textarea></div>");
+            // 输入框与"发送到手机"同处一行,一眼能看出这个按钮作用于输入框里的文字
+            response.append("<hr>");
+            response.append("<p class=\"hint\">输入文字后点右边的\"发送到手机\"，文字会直接显示在手机上，不保存文件</p>");
+            response.append("<div class=\"row push-row\">");
+            response.append("<textarea name=\"text\" rows=\"2\" placeholder=\"在此输入文字\"></textarea>");
+            response.append("<input type=\"submit\" formaction=\"/push\" value=\"发送到手机\">");
+            response.append("</div>");
+            response.append("<hr>");
+            response.append("<p class=\"hint\">选择文件后点下面的按钮，文件与文字会存到手机 Download 目录</p>");
             response.append("<div class=\"row\"><input type=\"file\" name=\"file\" multiple></div>");
             response.append("<div class=\"row\"><input type=\"submit\" value=\"上传到 Download 目录\"></div>");
             response.append("</form>");
@@ -151,6 +201,53 @@ public class FileServer extends NanoHTTPD {
         }
         response.append("</body></html>");
         return newFixedLengthResponse(Response.Status.OK, "text/html; charset=UTF-8", response.toString());
+    }
+
+    /**
+     * 网页最上方的提示:设置后放在页面最前面,密码验证之前也能看到。
+     */
+    private void appendNotice(StringBuilder response) {
+        String notice = noticeSupplier == null ? null : noticeSupplier.get();
+        if (notice == null || notice.trim().isEmpty()) {
+            return;
+        }
+        // 提示框上方加一行说明,避免用户不知道这块内容从哪来;说明后面跟一个复制按钮
+        response.append("<div class=\"notice-head\">")
+                .append("<p class=\"hint\">发起端分享文案:</p>")
+                .append("<button type=\"button\" id=\"noticeCopyBtn\" class=\"copy-btn\">复制</button>")
+                .append("</div>")
+                .append("<div class=\"notice\" id=\"noticeBox\">").append(escapeHtml(notice)).append("</div>");
+        appendCopyScript(response);
+    }
+
+    /**
+     * 复制按钮的脚本:点一下把上面那块文案放进剪贴板。
+     * <p>
+     * 页面是通过 http + 局域网 IP 打开的，不属于安全上下文，navigator.clipboard 不可用，
+     * 所以先试新 API，失败再退回 execCommand 的老办法(临时 textarea + 选中 + copy)。
+     * 文案内容从 DOM 里读，不拼进脚本，避免转义问题。
+     */
+    private void appendCopyScript(StringBuilder response) {
+        response.append("<script>")
+                .append("(function(){")
+                .append("var b=document.getElementById('noticeCopyBtn'),n=document.getElementById('noticeBox');")
+                .append("if(!b||!n){return;}")
+                .append("function fallback(t){")
+                .append("var a=document.createElement('textarea');")
+                .append("a.value=t;a.setAttribute('readonly','');")
+                .append("a.style.position='fixed';a.style.top='-1000px';")
+                .append("document.body.appendChild(a);a.select();a.setSelectionRange(0,a.value.length);")
+                .append("var ok=false;try{ok=document.execCommand('copy');}catch(e){ok=false;}")
+                .append("document.body.removeChild(a);return ok;}")
+                .append("function done(ok){var o=b.textContent;b.textContent=ok?'已复制':'复制失败';")
+                .append("setTimeout(function(){b.textContent=o;},1500);}")
+                .append("b.addEventListener('click',function(){")
+                .append("var t=n.textContent;")
+                .append("if(navigator.clipboard&&window.isSecureContext){")
+                .append("navigator.clipboard.writeText(t).then(function(){done(true);},function(){done(fallback(t));});")
+                .append("}else{done(fallback(t));}});")
+                .append("})();")
+                .append("</script>");
     }
 
     private void appendLoginForm(StringBuilder response, String uri, String error) {
@@ -183,7 +280,7 @@ public class FileServer extends NanoHTTPD {
      */
     private Response handleLogin(IHTTPSession session) {
         try {
-            session.parseBody(new HashMap<>());
+            parseBodyAsUtf8(session, new HashMap<>());
         } catch (IOException | ResponseException e) {
             return newFixedLengthResponse(Response.Status.BAD_REQUEST, "text/html; charset=UTF-8",
                     buildResultHtml("登录失败", "解析请求出错: " + escapeHtml(e.getMessage()), "/"));
@@ -214,7 +311,8 @@ public class FileServer extends NanoHTTPD {
                 ? new File(downloadFile, next)
                 : new File(rootDirectory, next);
         StringBuilder response = new StringBuilder("<html>" + PAGE_HEAD + "<body>");
-        response.append("<h1>File Browser</h1>");
+        response.append("<h1>快捷分享</h1>");
+        appendNotice(response);
         if ("/".equals(next)) {
             response.append("<p class=\"hint\">选择下面的文件夹内容即可下载\"发起端\"的文件</p>");
         }
@@ -231,10 +329,12 @@ public class FileServer extends NanoHTTPD {
     }
 
     private Response buildAuthRequiredPage() {
-        String html = "<html>" + PAGE_HEAD + "<body><h1>需要访问密码</h1>" +
-                "<p class=\"hint\">该文件需要先输入访问密码才能下载。</p>" +
-                "<a href=\"/\">返回首页输入密码</a></body></html>";
-        return newFixedLengthResponse(Response.Status.UNAUTHORIZED, "text/html; charset=UTF-8", html);
+        StringBuilder response = new StringBuilder("<html>" + PAGE_HEAD + "<body>");
+        response.append("<h1>快捷分享</h1>");
+        appendNotice(response);
+        response.append("<p class=\"hint\">该文件需要先输入访问密码才能下载。</p>")
+                .append("<a href=\"/\">返回首页输入密码</a></body></html>");
+        return newFixedLengthResponse(Response.Status.UNAUTHORIZED, "text/html; charset=UTF-8", response.toString());
     }
 
     /**
@@ -257,20 +357,54 @@ public class FileServer extends NanoHTTPD {
     }
 
     /**
+     * 解析 POST body，并强制按 UTF-8 解码。
+     * <p>
+     * 浏览器/curl 上传 multipart 时通常不带 charset 参数，NanoHTTPD 会退回用
+     * US-ASCII 解码 multipart 的头部与字段值，导致中文等非 ASCII 内容变成乱码。
+     * 这里在解析前补上 charset=UTF-8，让它按 UTF-8 解码，保留原始内容。
+     */
+    private void parseBodyAsUtf8(IHTTPSession session, Map<String, String> files)
+            throws IOException, ResponseException {
+        Map<String, String> headers = session.getHeaders();
+        String contentType = headers.get("content-type");
+        if (contentType != null && !contentType.toLowerCase(Locale.US).contains("charset=")) {
+            headers.put("content-type", contentType + "; charset=UTF-8");
+        }
+        session.parseBody(files);
+    }
+
+    /**
+     * 处理"发送到手机"：只把网页端输入的文字交给界面显示，不保存文件。
+     */
+    private Response handlePush(IHTTPSession session) {
+        try {
+            parseBodyAsUtf8(session, new HashMap<>());
+        } catch (IOException | ResponseException e) {
+            return newFixedLengthResponse(Response.Status.BAD_REQUEST, "text/html; charset=UTF-8",
+                    buildResultHtml("发送失败", "解析请求出错: " + escapeHtml(e.getMessage()), "/"));
+        }
+
+        String text = session.getParms().get("text");
+        if (text == null || text.trim().isEmpty()) {
+            return newFixedLengthResponse(Response.Status.BAD_REQUEST, "text/html; charset=UTF-8",
+                    buildResultHtml("发送失败", "内容为空，请先在输入框里写点东西", "/"));
+        }
+
+        lastPushedText = text;
+        if (textReceiver != null) {
+            textReceiver.accept(text);
+        }
+        return newFixedLengthResponse(Response.Status.OK, "text/html; charset=UTF-8",
+                buildResultHtml("已发送到手机", "<div class=\"notice\">" + escapeHtml(text) + "</div>", "/"));
+    }
+
+    /**
      * 处理 POST 上传：把上传的文件保存到 Download 目录。
      */
     private Response handleUpload(IHTTPSession session, File downloadDir) {
         Map<String, String> files = new HashMap<>();
         try {
-            // 浏览器/curl 上传 multipart 时通常不带 charset 参数，NanoHTTPD 会退回用
-            // US-ASCII 解码 multipart 头部，导致非 ASCII 文件名被替换成 �。
-            // 这里在解析前补上 charset=UTF-8，让 NanoHTTPD 按 UTF-8 解码头部，保留原始文件名。
-            Map<String, String> headers = session.getHeaders();
-            String contentType = headers.get("content-type");
-            if (contentType != null && !contentType.toLowerCase(Locale.US).contains("charset=")) {
-                headers.put("content-type", contentType + "; charset=UTF-8");
-            }
-            session.parseBody(files);
+            parseBodyAsUtf8(session, files);
         } catch (IOException | ResponseException e) {
             return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, "text/html; charset=UTF-8",
                     buildResultHtml("上传失败", "解析上传内容出错: " + e.getMessage(), session.getUri()));
