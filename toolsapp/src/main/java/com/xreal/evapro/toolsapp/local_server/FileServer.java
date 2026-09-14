@@ -79,7 +79,7 @@ public class FileServer extends NanoHTTPD {
     private static final String PAGE_HEAD =
             "<head><meta charset=\"UTF-8\">" +
                     "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">" +
-                    "<title>快捷分享</title>" +
+                    "<title>隔空传送</title>" +
                     "<style>" +
                     "html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}" +
                     "body{font-size:22px;font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;}" +
@@ -169,7 +169,7 @@ public class FileServer extends NanoHTTPD {
      */
     private Response renderDirectoryPage(IHTTPSession session, String uri, File targetFile) {
         StringBuilder response = new StringBuilder("<html>" + PAGE_HEAD + "<body>");
-        response.append("<h1>快捷分享</h1>");
+        response.append("<h1>隔空传送</h1>");
         // 动态提示紧跟在标题下面
         appendNotice(response);
         // 上传表单只在首页(/)显示；子目录仅浏览/下载
@@ -190,7 +190,7 @@ public class FileServer extends NanoHTTPD {
             // 分割线 + 下载说明
             response.append("<hr>");
             response.append("<hr>");
-            response.append("<p class=\"hint\">选择下面的文件夹内容即可下载\"发起端\"的文件</p>");
+            response.append("<p class=\"hint\">选择下面的文件夹内容即可下载手机里的文件</p>");
         }
 
         if (isPasswordRequired() && !isAuthenticated(session)) {
@@ -213,7 +213,7 @@ public class FileServer extends NanoHTTPD {
         }
         // 提示框上方加一行说明,避免用户不知道这块内容从哪来;说明后面跟一个复制按钮
         response.append("<div class=\"notice-head\">")
-                .append("<p class=\"hint\">发起端分享文案:</p>")
+                .append("<p class=\"hint\">手机端分享文案:</p>")
                 .append("<button type=\"button\" id=\"noticeCopyBtn\" class=\"copy-btn\">复制</button>")
                 .append("</div>")
                 .append("<div class=\"notice\" id=\"noticeBox\">").append(escapeHtml(notice)).append("</div>");
@@ -311,10 +311,10 @@ public class FileServer extends NanoHTTPD {
                 ? new File(downloadFile, next)
                 : new File(rootDirectory, next);
         StringBuilder response = new StringBuilder("<html>" + PAGE_HEAD + "<body>");
-        response.append("<h1>快捷分享</h1>");
+        response.append("<h1>隔空传送</h1>");
         appendNotice(response);
         if ("/".equals(next)) {
-            response.append("<p class=\"hint\">选择下面的文件夹内容即可下载\"发起端\"的文件</p>");
+            response.append("<p class=\"hint\">选择下面的文件夹内容即可下载手机里的文件</p>");
         }
         appendLoginForm(response, next, "密码错误，请重试");
         response.append("</body></html>");
@@ -330,7 +330,7 @@ public class FileServer extends NanoHTTPD {
 
     private Response buildAuthRequiredPage() {
         StringBuilder response = new StringBuilder("<html>" + PAGE_HEAD + "<body>");
-        response.append("<h1>快捷分享</h1>");
+        response.append("<h1>隔空传送</h1>");
         appendNotice(response);
         response.append("<p class=\"hint\">该文件需要先输入访问密码才能下载。</p>")
                 .append("<a href=\"/\">返回首页输入密码</a></body></html>");
